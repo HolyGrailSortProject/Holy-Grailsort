@@ -65,12 +65,12 @@ private static <T> void sortBlocks(T[] array, int firstKey, int start, int block
 	//              from the scrambled area until either (a) the scrambled area runs out of blocks,
 	//              meaning the rest are sorted, or (b) the scrambled area hits the end of the right
 	//              subarray
-	do {
+	while(scrambledIndex < lastKey) {
 		int selectBlock = blockIndex;
 		int selectKey   = keyIndex;
-		
+
 		int currBlock   = blockIndex + blockLen;
-		
+
 		for(int currKey = keyIndex + 1; currKey <= scrambledIndex; currKey++, currBlock += blockLen) {
 			int compare = cmp.compare(array[currBlock + cmpIndex], array[selectBlock + cmpIndex]);
 			if (compare < 0 || (compare == 0 && cmp.compare(array[  currKey],
@@ -79,19 +79,19 @@ private static <T> void sortBlocks(T[] array, int firstKey, int start, int block
 				selectKey   = currKey;
 			}
 		}
-		
+
 		if(selectKey != keyIndex) {
 			swapBlocksForwards(array, blockIndex, selectBlock, blockLen);
 			swap(array, keyIndex, selectKey);
-		
+
 			if(selectKey == scrambledIndex) scrambledIndex++;
 		}
-		
+
 		blockIndex += blockLen;
 		keyIndex++;
-	} while(keyIndex < scrambledIndex && scrambledIndex < lastKey);
-	
-	if(keyIndex == scrambledIndex) return;
+		
+		if(keyIndex == scrambledIndex) return;
+	}
 	
 	// phase four: sort the remainder blocks from the scrambled area
 	do {
