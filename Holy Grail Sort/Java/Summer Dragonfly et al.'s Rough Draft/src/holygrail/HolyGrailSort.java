@@ -1594,7 +1594,7 @@ final public class HolyGrailSort<T> {
                         direction = LocalMerge.BACKWARDS;
                     }
                     else {
-                        this.combineBackwards(array, start, start + bufferLen, length - bufferLen,
+                        this.combineBackwards(array, start, start + keyLen, length - bufferLen,
                                                      subarrayLen, blockLen);
                         direction = LocalMerge.FORWARDS;
                     }
@@ -1609,7 +1609,7 @@ final public class HolyGrailSort<T> {
                         direction = LocalMerge.BACKWARDS;
                     }
                     else {
-                        this.combineBackwardsOutOfPlace(array, start, start + bufferLen, length - bufferLen,
+                        this.combineBackwardsOutOfPlace(array, start, start + keyLen, length - bufferLen,
                                                         subarrayLen, blockLen);
                         direction = LocalMerge.FORWARDS;
                     }
@@ -1628,7 +1628,7 @@ final public class HolyGrailSort<T> {
                         direction = LocalMerge.BACKWARDS;
                     }
                     else {
-                        this.combineBackwards(array, start, start + bufferLen, length - bufferLen,
+                        this.combineBackwards(array, start, start + keyLen, length - bufferLen,
                                                      subarrayLen, keyBuffer);
                         direction = LocalMerge.FORWARDS;
                     }
@@ -1643,7 +1643,7 @@ final public class HolyGrailSort<T> {
                         direction = LocalMerge.BACKWARDS;
                     }
                     else {
-                        this.combineBackwardsOutOfPlace(array, start, start + bufferLen, length - bufferLen,
+                        this.combineBackwardsOutOfPlace(array, start, start + keyLen, length - bufferLen,
                                                         subarrayLen, keyBuffer);
                         direction = LocalMerge.FORWARDS;
                     }
