@@ -27,6 +27,17 @@ import java.util.Comparator;
  * SOFTWARE.
  */
 
+// HOLY GRAILSORT FOR JAVA - A faster implementation of in-place, stable,
+//                          worst-case O(n log n) sorting based on Andrey
+//                          Astrelin's Grailsort
+//
+// ** Written and maintained by The Holy Grail Sort Project
+//
+// Primary authors: Summer Dragonfly and Anonymous0726, with the incredible aid
+// from the rest of the team!
+//
+// Current status: Completely broken; PLEASE DO NOT USE YET (6/6/21)
+
 /*
  * The Holy Grail Sort Project
  * Project Manager:      Summer Dragonfly
@@ -49,16 +60,6 @@ import java.util.Comparator;
  *
  * Special thanks to "The Studio" Discord community!
  */
-
-// HOLY GRAILSORT FOR JAVA - A faster implementation of in-place, stable,
-//                           worst-case O(n log n) sorting
-//
-// ** Written and maintained by The Holy Grail Sort Project
-//
-// Primary author: Summer Dragonfly and Anonymous0726, with the incredible aid
-//                 from the rest of the team!
-//
-// Current status: Completely broken; PLEASE DO NOT USE YET (6/5/21)
 
 enum LocalMerge {
     FORWARDS,
@@ -580,19 +581,16 @@ final public class HolyGrailSort<T> {
         
         // phase one: find first index in left subarray where a smaller right block can be swapped;
         //            if no swaps occur, the subarrays are already in order
-		// TODO: fix phase one
         do {
             if(cmp.compare(array[rightBlock + cmpIndex], array[blockIndex + cmpIndex]) < 0) {
                 swapBlocksForwards(array, blockIndex, rightBlock, blockLen);
                 swap(array, keyIndex, rightKey);
                 sorted = false;
             }
-			else {
-				blockIndex += blockLen;
-				keyIndex++;
-			}
+            blockIndex += blockLen;
+            keyIndex++;
         } while(sorted && keyIndex < rightKey);
-        
+
         if(sorted) return;
         
 		// consider anonymous' suggestion
@@ -710,7 +708,7 @@ final public class HolyGrailSort<T> {
     
     
     
-    // TODO: Rewrite these abominations.
+    // TODO: Rewrite these f*cking abominations.
     private static <T> void rewindBuffer(T[] array, int start, int leftBlock, int buffer) {
         while(leftBlock >= start) {
             swap(array, buffer, leftBlock);
@@ -1445,7 +1443,7 @@ final public class HolyGrailSort<T> {
         
         blockCount = mergeLen / blockLen;
         
-        for(int mergeIndex = 0; mergeIndex < fullMerges; mergeIndex++) {
+        for(int mergeIndex = fullMerges - 1; mergeIndex >= 0; mergeIndex--) {
             int offset = start + (mergeIndex * mergeLen);
             
             sortBlocks(array, firstKey, offset, blockCount, leftBlocks, blockLen, true, cmp);
@@ -1568,7 +1566,7 @@ final public class HolyGrailSort<T> {
         
         blockCount = mergeLen / blockLen;
         
-        for(int mergeIndex = 0; mergeIndex < fullMerges; mergeIndex++) {
+        for(int mergeIndex = fullMerges - 1; mergeIndex >= 0; mergeIndex--) {
             int offset = start + (mergeIndex * mergeLen);
             
             sortBlocks(array, firstKey, offset, blockCount, leftBlocks, blockLen, true, cmp);
@@ -1621,7 +1619,6 @@ final public class HolyGrailSort<T> {
         }
         else {
             int keyBuffer = keyLen / 2;
-            subarrayLen *= 2;
             
             if(extBuffer == null) {
                 while(keyBuffer >= ((2 * subarrayLen) / keyBuffer)) {

@@ -23,10 +23,8 @@ private static <T> void sortBlocks(T[] array, int firstKey, int start, int block
 			swap(array, keyIndex, rightKey);
 			sorted = false;
 		}
-		else {
-			blockIndex += blockLen;
-			keyIndex++;
-		}
+		blockIndex += blockLen;
+		keyIndex++;
 	} while(sorted && keyIndex < rightKey);
 	
 	if(sorted) return;
