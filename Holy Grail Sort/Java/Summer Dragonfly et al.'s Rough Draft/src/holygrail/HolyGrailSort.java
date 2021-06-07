@@ -1166,7 +1166,8 @@ final public class HolyGrailSort<T> {
                 // TODO: buffer length *should* always be equivalent to:
                 // right block length -  forwards merge blocks
                 //  left block length - backwards merge blocks
-                this.localMergeBackwards(array, currBlock, blockLen, this.currBlockLen, this.currBlockOrigin,
+                // TODO: redo this jank solution with the `start` offset
+                this.localMergeBackwards(array, nextBlock - blockLen + 1, blockLen, this.currBlockLen, this.currBlockOrigin,
                                          blockLen, cmp);
             }
             else {
