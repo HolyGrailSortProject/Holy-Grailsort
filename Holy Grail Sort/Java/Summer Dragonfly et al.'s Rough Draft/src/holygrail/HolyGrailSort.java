@@ -36,7 +36,7 @@ import java.util.Comparator;
 // Primary authors: Summer Dragonfly and Anonymous0726, with the incredible aid
 // from the rest of the team!
 //
-// Current status: Completely broken; PLEASE DO NOT USE YET (6/6/21)
+// Current status: Completely broken; PLEASE DO NOT USE YET (6/7/21)
 
 /*
  * The Holy Grail Sort Project
