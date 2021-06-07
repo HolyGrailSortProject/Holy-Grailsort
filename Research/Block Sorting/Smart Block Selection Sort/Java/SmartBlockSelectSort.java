@@ -31,16 +31,17 @@ private static <T> void sortBlocks(T[] array, int firstKey, int start, int block
 	
 	// consider anonymous' suggestion
 	
-	int scrambledIndex = rightKey + 1;
-	
+	int lastKey = firstKey + blockCount - 1;
+	int scrambledIndex = rightKey < lastKey ? rightKey + 1 : rightKey;
+
 	// phase two: replace the entire left subarray with blocks in sorted order from the
 	//            scrambled area, keeping track of the rightmost block swapped
 	do {
 		int selectBlock = rightBlock;
 		int selectKey   = rightKey;
-		
+
 		int currBlock   = rightBlock + blockLen;
-		
+
 		for(int currKey = rightKey + 1; currKey <= scrambledIndex; currKey++, currBlock += blockLen) {
 			int compare = cmp.compare(array[currBlock + cmpIndex], array[selectBlock + cmpIndex]);
 			if (compare < 0 || (compare == 0 && cmp.compare(array[  currKey],
@@ -49,17 +50,15 @@ private static <T> void sortBlocks(T[] array, int firstKey, int start, int block
 				selectKey   = currKey;
 			}
 		}
-		
+
 		swapBlocksForwards(array, blockIndex, selectBlock, blockLen);
 		swap(array, keyIndex, selectKey);
-		
-		if(selectKey == scrambledIndex) scrambledIndex++;
-		
+
+		if(selectKey == scrambledIndex && scrambledIndex < lastKey) scrambledIndex++;
+
 		blockIndex += blockLen;
 		keyIndex++;
 	} while(keyIndex < rightKey);
-	
-	int lastKey = firstKey + blockCount - 1;
 	
 	// phase three: after the left subarray has been sorted, keep finding the next block in order
 	//              from the scrambled area until either (a) the scrambled area runs out of blocks,
