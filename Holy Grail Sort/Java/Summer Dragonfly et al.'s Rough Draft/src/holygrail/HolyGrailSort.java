@@ -1330,7 +1330,7 @@ final public class HolyGrailSort<T> {
                 }
             }
             else {
-                fastForwardBuffer(array, offset - blockLen, offset, offset + fastForwardLen);
+                fastForwardBuffer(array, offset - blockLen, offset, offset + fastForwardLen - 1);
             }
         }
         
@@ -1522,7 +1522,7 @@ final public class HolyGrailSort<T> {
                 }
             }
             else {
-                fastForwardOutOfPlace(array, offset - blockLen, offset, offset + resetLength);
+                fastForwardOutOfPlace(array, offset - blockLen, offset, offset + resetLength - 1);
             }
         }
     }
