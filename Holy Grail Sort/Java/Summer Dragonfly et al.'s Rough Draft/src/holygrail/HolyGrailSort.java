@@ -1619,7 +1619,8 @@ final public class HolyGrailSort<T> {
         }
         else {
             int keyBuffer = keyLen / 2;
-            
+            insertSort(array, start, keyLen, this.cmp);
+						
             if(extBuffer == null) {
                 while(keyBuffer >= ((2 * subarrayLen) / keyBuffer)) {
                     if(direction == LocalMerge.FORWARDS) {
