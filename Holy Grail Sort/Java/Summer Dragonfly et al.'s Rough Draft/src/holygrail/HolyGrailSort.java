@@ -1317,7 +1317,7 @@ final public class HolyGrailSort<T> {
             //TODO: Why is this 'blockCount + 1'???
             insertSort(array, firstKey, blockCount, cmp);
             
-            if(fullMerges % 2 == 0) {
+            if(fullMerges % 2 == 0 && fullMerges != 0) {
                 lastSubarrays--;
                 rewindBuffer(array, offset - blockLen, offset + lastSubarrays - blockLen, offset + lastSubarrays);
             }
@@ -1509,7 +1509,7 @@ final public class HolyGrailSort<T> {
             //TODO: Why is this 'blockCount + 1'???
             insertSort(array, firstKey, blockCount, cmp);
             
-            if(mergeCount % 2 == 0) {
+            if(mergeCount % 2 == 0 && mergeCount != 0) {
                 lastSubarrays--;
                 rewindOutOfPlace(array, offset - blockLen, offset + lastSubarrays - blockLen, offset + lastSubarrays);
             }
