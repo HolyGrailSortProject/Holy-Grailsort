@@ -1840,13 +1840,12 @@ final public class HolyGrailSort<T> {
         
         // This 'if' case will always run during Strategy 2
         if(direction == LocalMerge.FORWARDS) {
-            insertSort(array, start, bufferLen, this.cmp);
+            insertSort(array, start + keyLen, blockLen, this.cmp);
             lazyMergeForwards(array, start, bufferLen, length - bufferLen, this.cmp);
         }
         else {
-            insertSort(array, start, keyLen, this.cmp);
-            lazyMergeForwards(array, start, keyLen, length - keyLen, this.cmp);
-            
+            lazyMergeForwards(array, start, keyLen, length - bufferLen, this.cmp);
+
             insertSort(array, start + length - blockLen, blockLen, this.cmp);
             lazyMergeBackwards(array, start, length - blockLen, blockLen, this.cmp);
         }
