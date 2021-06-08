@@ -1248,7 +1248,7 @@ final public class HolyGrailSort<T> {
             nextBlockOrigin = getSubarray(array, firstKey + keyIndex, medianKey, cmp);
             
             if(nextBlockOrigin != this.currBlockOrigin) {
-                this.localMergeBackwardsOutOfPlace(array, currBlock, blockLen, this.currBlockLen, this.currBlockOrigin,
+                this.localMergeBackwardsOutOfPlace(array, nextBlock - blockLen + 1, blockLen, this.currBlockLen, this.currBlockOrigin,
                                                    blockLen, cmp);
             }
             else {
