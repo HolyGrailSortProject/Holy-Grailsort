@@ -1727,6 +1727,34 @@ final public class HolyGrailSort<T> {
             }
         }
     }
+	
+	private static <T> void lazyMergeBufferBackwards(T[] array, int start, int leftLen, int rightLen, Comparator<T> cmp) {
+        int end = start + leftLen + rightLen - 1;
+
+        while(rightLen != 0) {            
+            int mergeLen = binarySearchLeft(array, start, leftLen, array[end], cmp);
+
+            if(mergeLen != leftLen) {
+                rotate(array, start + mergeLen, leftLen - mergeLen, rightLen);
+
+                end     -=  leftLen - mergeLen;
+                leftLen  = mergeLen;
+            }
+
+            if(leftLen == 0) {
+                break;
+            }
+            else {
+                int middle = start + leftLen;
+                // TODO: Replace with galloping search
+                do {
+                    rightLen--;
+                    end--;
+                } while(rightLen != 0 && cmp.compare(array[middle - 1],
+                                                     array[end       ]) <= 0);
+            }
+        }
+    }
     
     private static <T> void lazyStableSort(T[] array, int start, int length, Comparator<T> cmp) {
         int i;
@@ -1847,7 +1875,7 @@ final public class HolyGrailSort<T> {
             lazyMergeForwards(array, start, keyLen, length - bufferLen, this.cmp);
 
             insertSort(array, start + length - blockLen, blockLen, this.cmp);
-            lazyMergeBackwards(array, start, length - blockLen, blockLen, this.cmp);
+            lazyMergeBufferBackwards(array, start, length - blockLen, blockLen, this.cmp);
         }
     }
 }
