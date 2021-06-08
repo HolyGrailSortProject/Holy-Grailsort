@@ -1175,6 +1175,8 @@ final public class HolyGrailSort<T> {
                 this.currBlockLen = blockLen;
             }
         }
+		
+		swapBlocksBackwards(array, start, start + blockLen, this.currBlockLen);
     }
     
     private void mergeBlocksForwardsOutOfPlace(T[] array, int firstKey, T medianKey, int start,
@@ -1257,6 +1259,8 @@ final public class HolyGrailSort<T> {
                 this.currBlockLen = blockLen;
             }
         }
+		
+		System.arraycopy(array, start, array, start + blockLen, this.currBlockLen);
     }
     
     private void combineForwards(T[] array, int firstKey, int start, int length, int subarrayLen, int blockLen) {
