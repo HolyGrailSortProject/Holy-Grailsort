@@ -37,7 +37,7 @@ import java.util.Comparator;
 // from the rest of the team!
 //
 // Current status: Completely broken, messy, and filled with shortcuts;
-//				   PLEASE DO NOT USE YET (8/19/21)
+//                 PLEASE DO NOT USE YET (8/19/21)
 
 /*
  * The Holy Grail Sort Project
@@ -109,7 +109,7 @@ final public class HolyGrailSort<T> {
     
     // Shift elements [start + 1, start + length + 1) to the left by 1
     // and paste copied element at start + length - 1.
-    private static <T> void shiftForwards(T[] array, int start, int length) {
+    private static <T> void insertForwards(T[] array, int start, int length) {
         T item = array[start];
         System.arraycopy(array, start + 1, array, start, length);
         array[start + length] = item;    
@@ -117,7 +117,7 @@ final public class HolyGrailSort<T> {
     
     // Shift elements [start, start + length) to the right by 1
     // and paste copied element at start.
-    private static <T> void shiftBackwards(T[] array, int start, int length) {
+    private static <T> void insertBackwards(T[] array, int start, int length) {
         T item = array[start + length];
         System.arraycopy(array, start, array, start + 1, length);
         array[start] = item;
@@ -148,10 +148,10 @@ final public class HolyGrailSort<T> {
 
         if(minLen == 1) {
             if(leftLen == 1) {
-                shiftForwards(array, start, rightLen);
+                insertForwards(array, start, rightLen);
             }
             else {
-                shiftBackwards(array, start, leftLen);
+                insertBackwards(array, start, leftLen);
             }
         }
     }
@@ -168,7 +168,7 @@ final public class HolyGrailSort<T> {
             }
             
             if(cmp.compare(array[start], temp) > 0) {
-                shiftBackwards(array, start, item);
+                insertBackwards(array, start, item);
                 continue;
             }
 
@@ -268,7 +268,7 @@ final public class HolyGrailSort<T> {
                 // Then, "insertion sort" currKey to its spot in the key-buffer
                 // as long as it needs to be moved!
                 if(keysFound != insertPos) {
-                    shiftBackwards(array, start + firstKey + insertPos, keysFound - insertPos);
+                    insertBackwards(array, start + firstKey + insertPos, keysFound - insertPos);
                 }
                 
                 // One step closer to idealKeys.
@@ -1395,10 +1395,10 @@ final public class HolyGrailSort<T> {
     private void lazyCombine(T[] array, int firstKey, int start, int length, int subarrayLen, int blockLen) {
         Comparator<T> cmp = this.cmp; // local variable for performance à la Timsort
 
-        int     fullMerge = 2 * subarrayLen;
-        int    mergeCount = length / fullMerge;
-        int    blockCount = fullMerge / blockLen;
-        int lastSubarrays = length - (fullMerge * mergeCount);
+        int      mergeLen = 2 * subarrayLen;
+        int    fullMerges = length / mergeLen;
+        int    blockCount = mergeLen / blockLen;
+        int lastSubarrays = length - (mergeLen * fullMerges);
         
         if(lastSubarrays <= subarrayLen) {
             length -= lastSubarrays;
@@ -1408,8 +1408,8 @@ final public class HolyGrailSort<T> {
         int leftBlocks = subarrayLen / blockLen;
         T   medianKey  = array[firstKey + leftBlocks];
         
-        for(int mergeIndex = 0; mergeIndex < mergeCount; mergeIndex++) {
-            int offset = start + (mergeIndex * fullMerge);
+        for(int mergeIndex = 0; mergeIndex < fullMerges; mergeIndex++) {
+            int offset = start + (mergeIndex * mergeLen);
             
             sortBlocks(array, firstKey, offset, blockCount, leftBlocks, blockLen, false, cmp);
             this.lazyMergeBlocks(array, firstKey, medianKey, offset, blockCount, blockLen, 0, 0, cmp);
@@ -1418,7 +1418,7 @@ final public class HolyGrailSort<T> {
             insertSort(array, firstKey, blockCount, cmp);
         }
 
-        int offset = start + (mergeCount * fullMerge);
+        int offset = start + (fullMerges * mergeLen);
         
         if(lastSubarrays != 0) {
             blockCount = lastSubarrays / blockLen;
@@ -1500,15 +1500,15 @@ final public class HolyGrailSort<T> {
     private void combineForwardsOutOfPlace(T[] array, int firstKey, int start, int length, int subarrayLen, int blockLen) {
         Comparator<T> cmp = this.cmp; // local variable for performance à la Timsort
 
-        int     fullMerge = 2 * subarrayLen;
-        int    mergeCount = length / fullMerge;
-        int    blockCount = fullMerge / blockLen;
-        int lastSubarrays = length - (fullMerge * mergeCount);
+        int      mergeLen = 2 * subarrayLen;
+        int    fullMerges = length / mergeLen;
+        int    blockCount = mergeLen / blockLen;
+        int lastSubarrays = length - (mergeLen * fullMerges);
         
-        int resetLength = 0;
+        int fastForwardLen = 0;
         if(lastSubarrays <= subarrayLen) {
-            if(mergeCount % 2 != 0) {
-                resetLength = lastSubarrays;
+            if(fullMerges % 2 != 0) {
+                fastForwardLen = lastSubarrays;
             }
             length -= lastSubarrays;
             lastSubarrays = 0;
@@ -1517,8 +1517,8 @@ final public class HolyGrailSort<T> {
         int leftBlocks = subarrayLen / blockLen;
         T   medianKey  = array[firstKey + leftBlocks];
         
-        for(int mergeIndex = 0; mergeIndex < mergeCount; mergeIndex++) {
-            int offset = start + (mergeIndex * fullMerge);
+        for(int mergeIndex = 0; mergeIndex < fullMerges; mergeIndex++) {
+            int offset = start + (mergeIndex * mergeLen);
             
             sortBlocks(array, firstKey, offset, blockCount, leftBlocks, blockLen, false, cmp);
             this.mergeBlocksForwardsOutOfPlace(array, firstKey, medianKey, offset, blockCount, blockLen, 0, 0, cmp);
@@ -1526,7 +1526,7 @@ final public class HolyGrailSort<T> {
             insertSort(array, firstKey, blockCount, cmp);
         }
 
-        int offset = start + (mergeCount * fullMerge);
+        int offset = start + (fullMerges * mergeLen);
         
         if(lastSubarrays != 0) {
             blockCount = lastSubarrays / blockLen;
@@ -1553,7 +1553,7 @@ final public class HolyGrailSort<T> {
             //TODO: Why is this 'blockCount + 1'???
             insertSort(array, firstKey, blockCount, cmp);
             
-            if(mergeCount % 2 == 0 && mergeCount != 0) {
+            if(fullMerges % 2 == 0 && fullMerges != 0) {
                 System.arraycopy(array, offset - blockLen, array, offset, lastSubarrays);
                 
                 // swapBlocksBackwards(array, offset - blockLen, offset, lastSubarrays);
@@ -1563,10 +1563,10 @@ final public class HolyGrailSort<T> {
             }
         }
         else {
-            if(resetLength == 0) {
-                if(mergeCount % 2 != 0 && mergeCount != 1) {
+            if(fastForwardLen == 0) {
+                if(fullMerges % 2 != 0 && fullMerges != 1) {
                     // TODO: Double-check if this is equivalent to the rewindBuffer version...
-                    System.arraycopy(array, offset - blockLen - fullMerge, array, offset - blockLen, fullMerge);
+                    System.arraycopy(array, offset - blockLen - mergeLen, array, offset - blockLen, mergeLen);
                     
                     // swapBlocksBackwards(array, offset - blockLen - mergeLen, offset - blockLen, mergeLen);
                     
@@ -1575,11 +1575,11 @@ final public class HolyGrailSort<T> {
                 }
             }
             else {
-                System.arraycopy(array, offset, array, offset - blockLen, resetLength);
+                System.arraycopy(array, offset, array, offset - blockLen, fastForwardLen);
                 
                 // swapBlocksForwards(array, offset - blockLen, offset, fastForwardLen);
                 
-                // fastForwardOutOfPlace(array, offset - blockLen, offset, offset + resetLength - 1);
+                // fastForwardOutOfPlace(array, offset - blockLen, offset, offset + fastForwardLen - 1);
             }
         }
     }
