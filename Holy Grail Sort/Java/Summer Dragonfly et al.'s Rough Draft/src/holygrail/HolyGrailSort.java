@@ -36,7 +36,8 @@ import java.util.Comparator;
 // Primary authors: Summer Dragonfly and Anonymous0726, with the incredible aid
 // from the rest of the team!
 //
-// Current status: Completely broken; PLEASE DO NOT USE YET (6/7/21)
+// Current status: Completely broken, messy, and filled with shortcuts;
+//				   PLEASE DO NOT USE YET (8/19/21)
 
 /*
  * The Holy Grail Sort Project
@@ -373,7 +374,7 @@ final public class HolyGrailSort<T> {
         }
 
         if(right != buffer) {
-            swapBlocksBackwards(array, buffer, right, right - middle);
+            swapBlocksBackwards(array, right, buffer, right - middle);
         }
     }
 
@@ -405,11 +406,17 @@ final public class HolyGrailSort<T> {
         }
 
         if(buffer != left) {
+            System.arraycopy(array, left, array, buffer, middle - left);
+            
+            // swapBlocksForwards(array, buffer, left, middle - left);
+            
+            /*
             while(left < middle) {
                 array[buffer] = array[left];
                 buffer++;
                 left++;
             }
+            */
         }
     }
     
@@ -435,11 +442,17 @@ final public class HolyGrailSort<T> {
         }
 
         if(right != buffer) {
+            System.arraycopy(array, right, array, buffer, right - middle);
+            
+            // swapBlocksBackwards(array, right, buffer, right - middle);
+            
+            /*
             while(right > middle) {
                 array[buffer] = array[right];
                 buffer--;
                 right--;
             }
+            */
         }
     }
     
@@ -705,9 +718,7 @@ final public class HolyGrailSort<T> {
         */
     }
     
-    
-    
-    // TODO: Rewrite these f*cking abominations.
+    /*
     private static <T> void rewindBuffer(T[] array, int start, int leftBlock, int buffer) {
         while(leftBlock >= start) {
             swap(array, buffer, leftBlock);
@@ -752,6 +763,7 @@ final public class HolyGrailSort<T> {
             index--;
         }
     }
+    */
     
     private static <T> Subarray getSubarray(T[] array, int currentKey, T medianKey, Comparator<T> cmp) {
         if(cmp.compare(array[currentKey], medianKey) < 0) {
@@ -779,9 +791,8 @@ final public class HolyGrailSort<T> {
         return blocksToMerge;
     }
     
-    private void localMergeForwards(T[] array, int start, int leftLen, Subarray leftOrigin,
-                                                          int rightLen, int bufferOffset,
-                                                          Comparator<T> cmp) {
+    private void localMergeForwards(T[] array, int start, int leftLen, Subarray leftOrigin, int rightLen,
+                                                          int bufferOffset, Comparator<T> cmp) {
         int buffer = start  - bufferOffset;
         int   left = start;
         int middle = start  +  leftLen;
@@ -816,8 +827,12 @@ final public class HolyGrailSort<T> {
         }
 
         if(left < middle) {
-            this.currBlockLen = middle - left;
-            rewindBuffer(array, left, middle - 1, end - 1);
+            int leftFrag = middle - left;
+            swapBlocksBackwards(array, left, end - leftFrag, leftFrag);
+            this.currBlockLen = leftFrag;
+            
+            //this.currBlockLen = leftFrag;
+            //rewindBuffer(array, left, middle - 1, end - 1);
         }
         else {
             this.currBlockLen = end - right;
@@ -866,8 +881,12 @@ final public class HolyGrailSort<T> {
         }
         
         if(right > middle) {
-            this.currBlockLen = right - middle;
-            fastForwardBuffer(array, end + 1, middle + 1, right);
+            int rightFrag = right - middle;
+            swapBlocksForwards(array, end + 1, middle + 1, rightFrag);
+            this.currBlockLen = rightFrag;
+            
+            //this.currBlockLen = right - middle;
+            //fastForwardBuffer(array, end + 1, middle + 1, right);
         }
         else {
             this.currBlockLen = left - end;
@@ -880,7 +899,8 @@ final public class HolyGrailSort<T> {
         }
     }
     
-    private void localLazyMerge(T[] array, int start, int leftLen, Subarray leftOrigin, int rightLen, Comparator<T> cmp) {
+    private void localLazyMerge(T[] array, int start, int leftLen, Subarray leftOrigin, int rightLen,
+                                           Comparator<T> cmp) {
         int middle = start + leftLen;
         
         if(leftOrigin == Subarray.LEFT) {
@@ -985,8 +1005,16 @@ final public class HolyGrailSort<T> {
         }
 
         if(left < middle) {
-            this.currBlockLen = middle - left;
-            rewindOutOfPlace(array, left, middle - 1, end - 1);
+            int leftFrag = middle - left;
+            System.arraycopy(array, left, array, end - leftFrag, leftFrag);
+            this.currBlockLen = leftFrag;
+            
+            //int leftFrag = middle - left;
+            //swapBlocksBackwards(array, left, end - leftFrag, leftFrag);
+            //this.currBlockLen = leftFrag;
+            
+            //this.currBlockLen = middle - left;
+            //rewindOutOfPlace(array, left, middle - 1, end - 1);
         }
         else {
             this.currBlockLen = end - right;
@@ -999,10 +1027,8 @@ final public class HolyGrailSort<T> {
         }
     }
     
-    private void localMergeBackwardsOutOfPlace(T[] array, int start, int leftLen, int rightLen,
-                                                                     Subarray rightOrigin,
-                                                                     int bufferOffset,
-                                                                     Comparator<T> cmp) {
+    private void localMergeBackwardsOutOfPlace(T[] array, int start, int leftLen, int rightLen, Subarray rightOrigin,
+                                                                     int bufferOffset, Comparator<T> cmp) {
         int    end = start  -  1;
         int   left = end    +  leftLen;
         int middle = left;
@@ -1037,8 +1063,16 @@ final public class HolyGrailSort<T> {
         }
 
         if(right > middle) {
-            this.currBlockLen = right - middle;
-            fastForwardOutOfPlace(array, end + 1, middle + 1, right);
+            int rightFrag = right - middle;
+            System.arraycopy(array, middle + 1, array, end + 1, rightFrag);
+            this.currBlockLen = rightFrag;
+            
+            //int rightFrag = right - middle;
+            //swapBlocksForwards(array, end + 1, middle + 1, rightFrag);
+            //this.currBlockLen = rightFrag;
+            
+            //this.currBlockLen = right - middle;
+            //fastForwardOutOfPlace(array, end + 1, middle + 1, right);
         }
         else {
             this.currBlockLen = left - end;
@@ -1175,8 +1209,8 @@ final public class HolyGrailSort<T> {
                 this.currBlockLen = blockLen;
             }
         }
-		
-		swapBlocksBackwards(array, start, start + blockLen, this.currBlockLen);
+        
+        swapBlocksBackwards(array, start, start + blockLen, this.currBlockLen);
     }
     
     private void mergeBlocksForwardsOutOfPlace(T[] array, int firstKey, T medianKey, int start,
@@ -1259,8 +1293,8 @@ final public class HolyGrailSort<T> {
                 this.currBlockLen = blockLen;
             }
         }
-		
-		System.arraycopy(array, start, array, start + blockLen, this.currBlockLen);
+        
+        System.arraycopy(array, start, array, start + blockLen, this.currBlockLen);
     }
     
     private void combineForwards(T[] array, int firstKey, int start, int length, int subarrayLen, int blockLen) {
@@ -1322,19 +1356,25 @@ final public class HolyGrailSort<T> {
             insertSort(array, firstKey, blockCount, cmp);
             
             if(fullMerges % 2 == 0 && fullMerges != 0) {
-                lastSubarrays--;
-                rewindBuffer(array, offset - blockLen, offset + lastSubarrays - blockLen, offset + lastSubarrays);
+                swapBlocksBackwards(array, offset - blockLen, offset, lastSubarrays);
+                
+                // lastSubarrays--;
+                // rewindBuffer(array, offset - blockLen, offset + lastSubarrays - blockLen, offset + lastSubarrays);
             }
         }
         else {
             if(fastForwardLen == 0) {
                 if(fullMerges % 2 != 0 && fullMerges != 1) {
+                    // TODO: Double-check if this is equivalent to the rewindBuffer version...
+                    swapBlocksBackwards(array, offset - blockLen - mergeLen, offset - blockLen, mergeLen);
+                    
                     // TODO: check arguments
-                    rewindBuffer(array, offset - mergeLen - blockLen, offset - blockLen - 1, offset - 1);
+                    // rewindBuffer(array, offset - mergeLen - blockLen, offset - blockLen - 1, offset - 1);
                 }
             }
             else {
-                fastForwardBuffer(array, offset - blockLen, offset, offset + fastForwardLen - 1);
+                swapBlocksForwards(array, offset - blockLen, offset, fastForwardLen);
+                // fastForwardBuffer(array, offset - blockLen, offset, offset + fastForwardLen - 1);
             }
         }
         
@@ -1514,19 +1554,32 @@ final public class HolyGrailSort<T> {
             insertSort(array, firstKey, blockCount, cmp);
             
             if(mergeCount % 2 == 0 && mergeCount != 0) {
-                lastSubarrays--;
-                rewindOutOfPlace(array, offset - blockLen, offset + lastSubarrays - blockLen, offset + lastSubarrays);
+                System.arraycopy(array, offset - blockLen, array, offset, lastSubarrays);
+                
+                // swapBlocksBackwards(array, offset - blockLen, offset, lastSubarrays);
+                
+                // lastSubarrays--;
+                // rewindOutOfPlace(array, offset - blockLen, offset + lastSubarrays - blockLen, offset + lastSubarrays);
             }
         }
         else {
             if(resetLength == 0) {
                 if(mergeCount % 2 != 0 && mergeCount != 1) {
+                    // TODO: Double-check if this is equivalent to the rewindBuffer version...
+                    System.arraycopy(array, offset - blockLen - fullMerge, array, offset - blockLen, fullMerge);
+                    
+                    // swapBlocksBackwards(array, offset - blockLen - mergeLen, offset - blockLen, mergeLen);
+                    
                     // TODO: check arguments
-                    rewindOutOfPlace(array, offset - fullMerge - blockLen, offset - blockLen - 1, offset - 1);
+                    // rewindOutOfPlace(array, offset - fullMerge - blockLen, offset - blockLen - 1, offset - 1);
                 }
             }
             else {
-                fastForwardOutOfPlace(array, offset - blockLen, offset, offset + resetLength - 1);
+                System.arraycopy(array, offset, array, offset - blockLen, resetLength);
+                
+                // swapBlocksForwards(array, offset - blockLen, offset, fastForwardLen);
+                
+                // fastForwardOutOfPlace(array, offset - blockLen, offset, offset + resetLength - 1);
             }
         }
     }
@@ -1624,7 +1677,7 @@ final public class HolyGrailSort<T> {
         else {
             int keyBuffer = keyLen / 2;
             insertSort(array, start, keyLen, this.cmp);
-						
+            
             if(extBuffer == null) {
                 while(keyBuffer >= ((2 * subarrayLen) / keyBuffer)) {
                     if(direction == LocalMerge.FORWARDS) {
@@ -1657,7 +1710,9 @@ final public class HolyGrailSort<T> {
             }
             
             if(direction == LocalMerge.BACKWARDS) {
-                resetBuffer(array, start + keyBuffer, length - keyBuffer, keyBuffer);
+                int bufferOffset = start + keyBuffer;
+                swapBlocksBackwards(array, bufferOffset, bufferOffset + keyBuffer, length - keyBuffer);
+                // resetBuffer(array, start + keyBuffer, length - keyBuffer, keyBuffer);
                 direction = LocalMerge.FORWARDS;
             }
             
@@ -1731,8 +1786,8 @@ final public class HolyGrailSort<T> {
             }
         }
     }
-	
-	private static <T> void lazyMergeBufferBackwards(T[] array, int start, int leftLen, int rightLen, Comparator<T> cmp) {
+    
+    private static <T> void lazyMergeBufferBackwards(T[] array, int start, int leftLen, int rightLen, Comparator<T> cmp) {
         int end = start + leftLen + rightLen - 1;
 
         while(rightLen != 0) {            
@@ -1805,7 +1860,7 @@ final public class HolyGrailSort<T> {
         //
         // credit to Anonymous0726 for figuring this out!
         
-        // TODO: WE DON'T NEED THIS CEILING?!?!?!?!?!?!?!?!?!?!?!?!?!
+        // TODO: We don't need this ceiling???
         int keyLen = ((length - 1) / blockLen) + 1;
         
         // Holy Grail is hoping to find '~2 sqrt n' unique items
