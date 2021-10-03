@@ -37,7 +37,7 @@ import java.util.Comparator;
 // from the rest of the team!
 //
 // Current status: Completely broken, messy, and filled with shortcuts;
-//                 PLEASE DO NOT USE YET (8/19/21)
+//                 PLEASE DO NOT USE YET (10/2/21)
 
 /*
  * The Holy Grail Sort Project
@@ -1180,8 +1180,6 @@ final public class HolyGrailSort<T> {
                                       int blockCount, int blockLen, int lastLen, Comparator<T> cmp) {
         
         int nextBlock = start + (blockCount * blockLen) - 1;
-        int currBlock;
-        
         int buffer    = nextBlock + lastLen + blockLen;
         
         // The last fragment (lastLen) came from the right subarray,
@@ -1190,10 +1188,7 @@ final public class HolyGrailSort<T> {
         this.currBlockOrigin = Subarray.RIGHT;
         
         for(int keyIndex = blockCount - 1; keyIndex >= 0; keyIndex--, nextBlock -= blockLen) {
-            Subarray nextBlockOrigin;
-            
-            currBlock       = nextBlock + this.currBlockLen;
-            nextBlockOrigin = getSubarray(array, firstKey + keyIndex, medianKey, cmp);
+            Subarray nextBlockOrigin = getSubarray(array, firstKey + keyIndex, medianKey, cmp);
             
             if(nextBlockOrigin != this.currBlockOrigin) {
                 // TODO: buffer length *should* always be equivalent to:
@@ -1204,8 +1199,8 @@ final public class HolyGrailSort<T> {
                                          blockLen, cmp);
             }
             else {
-                buffer = currBlock + blockLen;
-                swapBlocksBackwards(array, currBlock, buffer, this.currBlockLen);
+                buffer = nextBlock + blockLen + 1;
+                swapBlocksBackwards(array, nextBlock + 1, buffer, this.currBlockLen);
                 this.currBlockLen = blockLen;
             }
         }
@@ -1268,8 +1263,6 @@ final public class HolyGrailSort<T> {
     private void mergeBlocksBackwardsOutOfPlace(T[] array, int firstKey, T medianKey, int start,
                                                 int blockCount, int blockLen, int lastLen, Comparator<T> cmp) {
         int nextBlock = start + (blockCount * blockLen) - 1;
-        int currBlock;
-        
         int buffer    = nextBlock + lastLen + blockLen;
         
         // The last fragment (lastLen) came from the right subarray,
@@ -1278,18 +1271,15 @@ final public class HolyGrailSort<T> {
         this.currBlockOrigin = Subarray.RIGHT;
         
         for(int keyIndex = blockCount - 1; keyIndex >= 0; keyIndex--, nextBlock -= blockLen) {
-            Subarray nextBlockOrigin;
-            
-            currBlock       = nextBlock + this.currBlockLen;
-            nextBlockOrigin = getSubarray(array, firstKey + keyIndex, medianKey, cmp);
+            Subarray nextBlockOrigin = getSubarray(array, firstKey + keyIndex, medianKey, cmp);
             
             if(nextBlockOrigin != this.currBlockOrigin) {
                 this.localMergeBackwardsOutOfPlace(array, nextBlock - blockLen + 1, blockLen, this.currBlockLen, this.currBlockOrigin,
                                                    blockLen, cmp);
             }
             else {
-                buffer = currBlock + blockLen;
-                System.arraycopy(array, currBlock, array, buffer, this.currBlockLen);
+                buffer = nextBlock + blockLen + 1;
+                System.arraycopy(array, nextBlock + 1, array, buffer, this.currBlockLen);
                 this.currBlockLen = blockLen;
             }
         }
