@@ -1701,7 +1701,7 @@ final public class HolyGrailSort<T> {
 
             if(direction == LocalMerge.BACKWARDS) {
                 int bufferOffset = start + keyBuffer;
-                swapBlocksBackwards(array, bufferOffset, bufferOffset + keyBuffer, length - keyBuffer);
+                swapBlocksBackwards(array, bufferOffset, bufferOffset + keyBuffer, length - keyLen);
 				// resetBuffer(array, start + keyBuffer, length - keyBuffer, keyBuffer);
                 direction = LocalMerge.FORWARDS;
             }
