@@ -1666,17 +1666,17 @@ final public class HolyGrailSort<T> {
         }
         else {
             int keyBuffer = keyLen / 2;
-            insertSort(array, start, keyLen, this.cmp);
+            insertSort(array, start, keyBuffer, this.cmp);
             
             if(extBuffer == null) {
                 while(keyBuffer >= ((2 * subarrayLen) / keyBuffer)) {
                     if(direction == LocalMerge.FORWARDS) {
-                        this.combineForwards(array, start, start + bufferLen, length - bufferLen,
+                        this.combineForwards(array, start, start + keyLen, length - keyLen,
                                                     subarrayLen, keyBuffer);
                         direction = LocalMerge.BACKWARDS;
                     }
                     else {
-                        this.combineBackwards(array, start, start + keyLen, length - bufferLen,
+                        this.combineBackwards(array, start, start + keyBuffer, length - keyLen,
                                                      subarrayLen, keyBuffer);
                         direction = LocalMerge.FORWARDS;
                     }
@@ -1686,28 +1686,28 @@ final public class HolyGrailSort<T> {
             else {
                 while(keyBuffer >= ((2 * subarrayLen) / keyBuffer)) {
                     if(direction == LocalMerge.FORWARDS) {
-                        this.combineForwardsOutOfPlace(array, start, start + bufferLen, length - bufferLen,
+                        this.combineForwardsOutOfPlace(array, start, start + keyLen, length - keyLen,
                                                        subarrayLen, keyBuffer);
                         direction = LocalMerge.BACKWARDS;
                     }
                     else {
-                        this.combineBackwardsOutOfPlace(array, start, start + keyLen, length - bufferLen,
+                        this.combineBackwardsOutOfPlace(array, start, start + keyBuffer, length - keyLen,
                                                         subarrayLen, keyBuffer);
                         direction = LocalMerge.FORWARDS;
                     }
                     subarrayLen *= 2;
                 }
             }
-            
+
             if(direction == LocalMerge.BACKWARDS) {
                 int bufferOffset = start + keyBuffer;
                 swapBlocksBackwards(array, bufferOffset, bufferOffset + keyBuffer, length - keyBuffer);
-                // resetBuffer(array, start + keyBuffer, length - keyBuffer, keyBuffer);
+				// resetBuffer(array, start + keyBuffer, length - keyBuffer, keyBuffer);
                 direction = LocalMerge.FORWARDS;
             }
-            
-            while((length - bufferLen) > subarrayLen) {
-                this.lazyCombine(array, start, start + bufferLen, length - bufferLen,
+
+            while((length - keyLen) > subarrayLen) {
+                this.lazyCombine(array, start, start + keyLen, length - keyLen,
                                  subarrayLen, (2 * subarrayLen) / keyLen);
                 subarrayLen *= 2;
             }
