@@ -1705,6 +1705,8 @@ final public class HolyGrailSort<T> {
 				// resetBuffer(array, start + keyBuffer, length - keyBuffer, keyBuffer);
                 direction = LocalMerge.FORWARDS;
             }
+			
+			insertSort(array, start, keyLen, this.cmp);
 
             while((length - keyLen) > subarrayLen) {
                 this.lazyCombine(array, start, start + keyLen, length - keyLen,
