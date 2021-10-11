@@ -1,6 +1,6 @@
 // implementation of "smart block selection" sort
 // code inspired by Anonymous0726
-// TODO: CURRENTLY BROKEN; please do not use!!
+// TODO: possibly fixed???
 private static <T> void sortBlocks(T[] array, int firstKey, int start, int blockCount, int leftBlocks, int blockLen, boolean sortByTail, Comparator<T> cmp) {
 	// this check might be unnecessary with the new "combine blocks" control flow
 	if(blockCount == leftBlocks) return;
@@ -32,17 +32,17 @@ private static <T> void sortBlocks(T[] array, int firstKey, int start, int block
 	// consider anonymous' suggestion
 	
 	int lastKey = firstKey + blockCount - 1;
-	int scrambledIndex = rightKey < lastKey ? rightKey + 1 : rightKey;
+	int scrambledEnd = rightKey < lastKey ? rightKey + 1 : rightKey;
 
 	// phase two: replace the entire left subarray with blocks in sorted order from the
 	//            scrambled area, keeping track of the rightmost block swapped
-	do {
+	while(keyIndex < rightKey) {
 		int selectBlock = rightBlock;
 		int selectKey   = rightKey;
 
 		int currBlock   = rightBlock + blockLen;
 
-		for(int currKey = rightKey + 1; currKey <= scrambledIndex; currKey++, currBlock += blockLen) {
+		for(int currKey = rightKey + 1; currKey <= scrambledEnd; currKey++, currBlock += blockLen) {
 			int compare = cmp.compare(array[currBlock + cmpIndex], array[selectBlock + cmpIndex]);
 			if (compare < 0 || (compare == 0 && cmp.compare(array[  currKey],
 															array[selectKey]) < 0)) {
@@ -54,23 +54,23 @@ private static <T> void sortBlocks(T[] array, int firstKey, int start, int block
 		swapBlocksForwards(array, blockIndex, selectBlock, blockLen);
 		swap(array, keyIndex, selectKey);
 
-		if(selectKey == scrambledIndex && scrambledIndex < lastKey) scrambledIndex++;
+		if(selectKey == scrambledEnd && scrambledEnd < lastKey) scrambledEnd++;
 
 		blockIndex += blockLen;
 		keyIndex++;
-	} while(keyIndex < rightKey);
+	}
 	
 	// phase three: after the left subarray has been sorted, keep finding the next block in order
 	//              from the scrambled area until either (a) the scrambled area runs out of blocks,
 	//              meaning the rest are sorted, or (b) the scrambled area hits the end of the right
 	//              subarray
-	while(scrambledIndex < lastKey) {
+	while(scrambledEnd < lastKey) {
 		int selectBlock = blockIndex;
 		int selectKey   = keyIndex;
 
 		int currBlock   = blockIndex + blockLen;
 
-		for(int currKey = keyIndex + 1; currKey <= scrambledIndex; currKey++, currBlock += blockLen) {
+		for(int currKey = keyIndex + 1; currKey <= scrambledEnd; currKey++, currBlock += blockLen) {
 			int compare = cmp.compare(array[currBlock + cmpIndex], array[selectBlock + cmpIndex]);
 			if (compare < 0 || (compare == 0 && cmp.compare(array[  currKey],
 															array[selectKey]) < 0)) {
@@ -83,13 +83,13 @@ private static <T> void sortBlocks(T[] array, int firstKey, int start, int block
 			swapBlocksForwards(array, blockIndex, selectBlock, blockLen);
 			swap(array, keyIndex, selectKey);
 
-			if(selectKey == scrambledIndex) scrambledIndex++;
+			if(selectKey == scrambledEnd) scrambledEnd++;
 		}
 
 		blockIndex += blockLen;
 		keyIndex++;
 		
-		if(keyIndex == scrambledIndex) return;
+		if(keyIndex == scrambledEnd) return;
 	}
 	
 	// phase four: sort the remainder blocks from the scrambled area
