@@ -37,7 +37,7 @@ import java.util.Comparator;
 // from the rest of the team!
 //
 // Current status: Completely broken, messy, and filled with shortcuts;
-//                 PLEASE DO NOT USE YET (10/11/21)
+//                 PLEASE DO NOT USE YET (10/20/21)
 
 /*
  * The Holy Grail Sort Project
@@ -179,6 +179,38 @@ final public class HolyGrailSort<T> {
             
             array[index] = temp;
         }
+    }
+    
+    // implementation of Shellsort using Sedgewick's '82
+    // gap sequence: 1, 8, 23, 77, 281, ... [4^k + 3*2^(k-1) + 1]
+    // written by Taihennami
+    private static <T> void shellSort(T[] array, int start, int length, Comparator<T> cmp) {
+        int k = 0;
+        while((4 << (2*k)) + (3 << k) + 1 < length) {
+            k++;
+        }
+        
+        while(k-- > 0) {
+            int gap = (4 << (2*k)) + (3 << k) + 1;
+            
+            for(int item = gap; item < length; item++) {
+                T temp = array[start + item];
+                int index = start + item;
+                
+                if(cmp.compare(array[index - gap], temp) < 0) {
+                    continue;
+                }
+
+                do {
+                    array[index] = array[index - gap];
+                    index -= gap;
+                } while(index - gap > start && cmp.compare(array[index - 1], temp) > 0);
+
+                array[index] = temp;
+            }
+        }
+
+        insertSort(array, start, length, cmp);
     }
     
     // Technically a "lower bound" search
@@ -1702,12 +1734,11 @@ final public class HolyGrailSort<T> {
             if(direction == LocalMerge.BACKWARDS) {
                 int bufferOffset = start + keyBuffer;
                 swapBlocksBackwards(array, bufferOffset, bufferOffset + keyBuffer, length - keyLen);
-				// resetBuffer(array, start + keyBuffer, length - keyBuffer, keyBuffer);
                 direction = LocalMerge.FORWARDS;
             }
-			
-			insertSort(array, start, keyLen, this.cmp);
 
+            insertSort(array, start, keyLen, this.cmp);
+            
             while((length - keyLen) > subarrayLen) {
                 this.lazyCombine(array, start, start + keyLen, length - keyLen,
                                  subarrayLen, (2 * subarrayLen) / keyLen);
@@ -1919,13 +1950,13 @@ final public class HolyGrailSort<T> {
         
         // This 'if' case will always run during Strategy 2
         if(direction == LocalMerge.FORWARDS) {
-            insertSort(array, start + keyLen, blockLen, this.cmp);
+            shellSort(array, start + keyLen, blockLen, this.cmp);
             lazyMergeForwards(array, start, bufferLen, length - bufferLen, this.cmp);
         }
         else {
             lazyMergeForwards(array, start, keyLen, length - bufferLen, this.cmp);
 
-            insertSort(array, start + length - blockLen, blockLen, this.cmp);
+            shellSort(array, start + length - blockLen, blockLen, this.cmp);
             lazyMergeBufferBackwards(array, start, length - blockLen, blockLen, this.cmp);
         }
     }
