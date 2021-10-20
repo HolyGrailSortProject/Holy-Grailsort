@@ -1319,6 +1319,29 @@ final public class HolyGrailSort<T> {
         System.arraycopy(array, start, array, start + blockLen, this.currBlockLen);
     }
     
+    // a novel, elegant, and incredibly efficient 1.5 sqrt n key sort, courtesy of Control
+    // only works if a) median key is known and b) keys were permutated by "sortBlocks"
+    // (keys < medianKey and >= medianKey are each in relative sorted order, resembling a final radix sort pass)
+    private static <T> void sortKeys(T[] array, int firstKey, T medianKey, int keyCount, int buffer, Comparator<T> cmp) {
+        int currKey     = firstKey;
+        int bufferSwaps = 0;
+        
+        while(currKey < firstKey + keyCount) {
+            if(cmp.compare(array[currKey], medianKey) < 0) {
+                if(bufferSwaps != 0) {
+                    swap(array, currKey, currKey - bufferSwaps);
+                }
+            }
+            else {
+                swap(array, currKey, buffer + bufferSwaps);
+                bufferSwaps++;
+            }
+            currKey++;
+        }
+        
+        swapBlocksBackwards(array, currKey - bufferSwaps, buffer, bufferSwaps);
+    }
+    
     private void combineForwards(T[] array, int firstKey, int start, int length, int subarrayLen, int blockLen) {
         Comparator<T> cmp = this.cmp; // local variable for performance à la Timsort
 
@@ -1347,7 +1370,8 @@ final public class HolyGrailSort<T> {
             this.mergeBlocksForwards(array, firstKey, medianKey, offset, blockCount, blockLen, 0, 0, cmp);
             
             // TODO: Replace with Control's key sort
-            insertSort(array, firstKey, blockCount, cmp);
+            sortKeys(array, firstKey, medianKey, blockCount, offset + mergeLen - blockLen, cmp);
+            //insertSort(array, firstKey, blockCount, cmp);
         }
 
         int offset = start + (fullMerges * mergeLen);
@@ -1375,7 +1399,8 @@ final public class HolyGrailSort<T> {
             }
 
             //TODO: Why is this 'blockCount + 1'???
-            insertSort(array, firstKey, blockCount, cmp);
+            sortKeys(array, firstKey, medianKey, blockCount, offset + lastSubarrays - blockLen, cmp);
+            //insertSort(array, firstKey, blockCount, cmp);
             
             if(fullMerges % 2 == 0 && fullMerges != 0) {
                 swapBlocksBackwards(array, offset - blockLen, offset, lastSubarrays);
@@ -1503,7 +1528,8 @@ final public class HolyGrailSort<T> {
                 //TODO: Why is this 'blockCount + 1'???
                 // We believe this '+ 1' is unnecessary and
                 // possibly has a *hilarious* origin story
-                insertSort(array, firstKey, blockCount, cmp);
+                sortKeys(array, firstKey, medianKey, blockCount, offset, cmp);
+                //insertSort(array, firstKey, blockCount, cmp);
             }
         }
         
@@ -1515,7 +1541,8 @@ final public class HolyGrailSort<T> {
             sortBlocks(array, firstKey, offset, blockCount, leftBlocks, blockLen, true, cmp);
             this.mergeBlocksBackwards(array, firstKey, medianKey, offset, blockCount, blockLen, 0, cmp);
             
-            insertSort(array, firstKey, blockCount, cmp);
+            sortKeys(array, firstKey, medianKey, blockCount, offset, cmp);
+            //insertSort(array, firstKey, blockCount, cmp);
         }
     }
     
@@ -1698,7 +1725,7 @@ final public class HolyGrailSort<T> {
         }
         else {
             int keyBuffer = keyLen / 2;
-            insertSort(array, start, keyBuffer, this.cmp);
+            shellSort(array, start, keyBuffer, this.cmp);
             
             if(extBuffer == null) {
                 while(keyBuffer >= ((2 * subarrayLen) / keyBuffer)) {
@@ -1737,7 +1764,7 @@ final public class HolyGrailSort<T> {
                 direction = LocalMerge.FORWARDS;
             }
 
-            insertSort(array, start, keyLen, this.cmp);
+            shellSort(array, start, keyLen, this.cmp);
             
             while((length - keyLen) > subarrayLen) {
                 this.lazyCombine(array, start, start + keyLen, length - keyLen,
