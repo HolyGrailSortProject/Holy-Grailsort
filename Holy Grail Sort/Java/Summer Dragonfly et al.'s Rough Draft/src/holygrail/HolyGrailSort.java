@@ -37,7 +37,7 @@ import java.util.Comparator;
 // from the rest of the team!
 //
 // Current status: Completely broken, messy, and filled with shortcuts;
-//                 PLEASE DO NOT USE YET (10/20/21)
+//                 PLEASE DO NOT USE YET (10/23/21)
 
 /*
  * The Holy Grail Sort Project
@@ -182,8 +182,27 @@ final public class HolyGrailSort<T> {
         }
     }
     
-    // implementation of Shellsort using Sedgewick's '82
-    // gap sequence: 1, 8, 23, 77, 281, ... [4^k + 3*2^(k-1) + 1]
+    private static <T> void shellPass(T[] array, int start, int length, int gap, Comparator<T> cmp) {
+        for(int item = gap; item < length; item++) {
+            T temp = array[start + item];
+            int index = start + item;
+            
+            if(cmp.compare(array[index - gap], temp) < 0) {
+                continue;
+            }
+
+            do {
+                array[index] = array[index - gap];
+                index -= gap;
+            } while(index - gap > start && cmp.compare(array[index - gap], temp) > 0);
+
+            array[index] = temp;
+        }
+    }
+    
+    // implementation of Shellsort using a modified version of
+    // Sedgewick's '82 gap sequence: 1, *3*, 8, 23, 77, 281, ...
+    // [4^k + 3*2^(k-1) + 1] with an added penultimate gap of 3
     // written by Taihennami
     private static <T> void shellSort(T[] array, int start, int length, Comparator<T> cmp) {
         int k = 0;
@@ -193,24 +212,10 @@ final public class HolyGrailSort<T> {
         
         while(k-- > 0) {
             int gap = (4 << (2*k)) + (3 << k) + 1;
-            
-            for(int item = gap; item < length; item++) {
-                T temp = array[start + item];
-                int index = start + item;
-                
-                if(cmp.compare(array[index - gap], temp) < 0) {
-                    continue;
-                }
-
-                do {
-                    array[index] = array[index - gap];
-                    index -= gap;
-                } while(index - gap > start && cmp.compare(array[index - 1], temp) > 0);
-
-                array[index] = temp;
-            }
+            shellPass(array, start, length, gap, cmp);
         }
 
+        shellPass(array, start, length, 3, cmp);
         insertSort(array, start, length, cmp);
     }
     
@@ -1325,9 +1330,10 @@ final public class HolyGrailSort<T> {
     // (keys < medianKey and >= medianKey are each in relative sorted order, resembling a final radix sort pass)
     private static <T> void sortKeys(T[] array, int firstKey, T medianKey, int keyCount, int buffer, Comparator<T> cmp) {
         int currKey     = firstKey;
+        int keysEnd     = firstKey + keyCount;
         int bufferSwaps = 0;
         
-        while(currKey < firstKey + keyCount) {
+        while(currKey < keysEnd) {
             if(cmp.compare(array[currKey], medianKey) < 0) {
                 if(bufferSwaps != 0) {
                     swap(array, currKey, currKey - bufferSwaps);
@@ -1341,6 +1347,60 @@ final public class HolyGrailSort<T> {
         }
         
         swapBlocksBackwards(array, currKey - bufferSwaps, buffer, bufferSwaps);
+    }
+    
+    private static <T> void groupKeys(T[] array, int left, int right, T medianKey, Comparator<T> cmp) {
+        while(left < right && cmp.compare(array[left], medianKey) < 0) left++;
+        
+        for(int i = left + 1; i < right; i++) {
+            if(cmp.compare(array[i], medianKey) < 0) {
+                insertBackwards(array, left, i - left);
+                left++;
+            }
+        }
+    }
+
+    private static <T> void mergeGroups(T[] array, int left, int middle, int right, T medianKey, Comparator<T> cmp) {
+        int leftLen = middle - left;
+        int rightLen = right - middle;
+        
+        int mergeStart = left + binarySearchLeft(array, left, leftLen, medianKey, cmp);
+        int mergeLen = binarySearchLeft(array, middle, rightLen, medianKey, cmp);
+        
+        rotate(array, mergeStart, middle - mergeStart, mergeLen);
+    }
+
+    // another novel, elegant, and efficient key sort for Holy Grailsort, specifically for Strategy 2
+    // based on lazy stable sorting, this algorithm achieves less than 2n comparisons and O(n log n) moves
+    // works based off of the same assumptions as 'sortKeys'
+    // designed and implemented by aphitorite
+    private static <T> void lazySortKeys(T[] array, int firstKey, int keyCount, T medianKey, Comparator<T> cmp) {
+        int runLen = 8;
+        int keysEnd = firstKey + keyCount;
+        
+        int i;
+        for(i = firstKey; i + runLen < keysEnd; i += runLen) {
+            groupKeys(array, i, i + runLen, medianKey, cmp);
+        }
+        groupKeys(array, i, keysEnd, medianKey, cmp);
+        
+        while(runLen < keyCount) {
+            int fullMerge = 2 * runLen;
+            
+            int mergeIndex;
+            int mergeEnd = keysEnd - fullMerge;
+            
+            for(mergeIndex = firstKey; mergeIndex <= mergeEnd; mergeIndex += fullMerge) {
+                mergeGroups(array, mergeIndex, mergeIndex + runLen, mergeIndex + fullMerge, medianKey, cmp);
+            }
+            
+            int leftOver = keysEnd - mergeIndex;
+            if(leftOver > runLen) {
+                mergeGroups(array, mergeIndex, mergeIndex + runLen, keysEnd, medianKey, cmp);
+            }
+            
+            runLen *= 2;
+        }
     }
     
     private void combineForwards(T[] array, int firstKey, int start, int length, int subarrayLen, int blockLen) {
@@ -1462,8 +1522,8 @@ final public class HolyGrailSort<T> {
             sortBlocks(array, firstKey, offset, blockCount, leftBlocks, blockLen, false, cmp);
             this.lazyMergeBlocks(array, firstKey, medianKey, offset, blockCount, blockLen, 0, 0, cmp);
             
-            // TODO: Replace with Anon's key sort
-            insertSort(array, firstKey, blockCount, cmp);
+            lazySortKeys(array, firstKey, blockCount, medianKey, cmp);
+            //insertSort(array, firstKey, blockCount, cmp);
         }
 
         int offset = start + (fullMerges * mergeLen);
@@ -1492,7 +1552,7 @@ final public class HolyGrailSort<T> {
             }
 
             //TODO: Why is this 'blockCount + 1'???
-            insertSort(array, firstKey, blockCount, cmp);
+            lazySortKeys(array, firstKey, blockCount, medianKey, cmp);
         }
     }
     
