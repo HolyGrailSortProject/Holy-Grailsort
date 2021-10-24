@@ -1575,23 +1575,18 @@ final public class HolyGrailSort<T> {
         if(lastSubarrays != 0) {
             int offset = start + (fullMerges * mergeLen);
             
-            if(lastSubarrays - subarrayLen <= blockLen) {
-                mergeBackwards(array, offset, subarrayLen, lastSubarrays - subarrayLen, blockLen, cmp);
-            }
-            else {
-                sortBlocks(array, firstKey, offset, blockCount, leftBlocks, blockLen, true, cmp);
+            sortBlocks(array, firstKey, offset, blockCount, leftBlocks, blockLen, true, cmp);
 
-                int lastFragment = lastSubarrays - (blockCount * blockLen);
+            int lastFragment = lastSubarrays - (blockCount * blockLen);
 
-                this.mergeBlocksBackwards(array, firstKey, medianKey, offset, blockCount, blockLen,
-                                          lastFragment, cmp);
+            this.mergeBlocksBackwards(array, firstKey, medianKey, offset, blockCount, blockLen,
+                                      lastFragment, cmp);
 
-                //TODO: Why is this 'blockCount + 1'???
-                // We believe this '+ 1' is unnecessary and
-                // possibly has a *hilarious* origin story
-                sortKeys(array, firstKey, medianKey, blockCount, offset, cmp);
-                //insertSort(array, firstKey, blockCount, cmp);
-            }
+            //TODO: Why is this 'blockCount + 1'???
+            // We believe this '+ 1' is unnecessary and
+            // possibly has a *hilarious* origin story
+            sortKeys(array, firstKey, medianKey, blockCount, offset, cmp);
+            //insertSort(array, firstKey, blockCount, cmp);
         }
         
         blockCount = mergeLen / blockLen;
