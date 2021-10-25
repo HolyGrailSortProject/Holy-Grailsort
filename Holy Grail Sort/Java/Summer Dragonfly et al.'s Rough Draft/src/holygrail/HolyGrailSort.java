@@ -63,19 +63,19 @@ import java.util.Comparator;
  * Special thanks to "The Studio" Discord community!
  */
 
-enum LocalMerge {
-    FORWARDS,
-    BACKWARDS;
-}
-
-//Credit to phoenixbound for this clever idea
-enum Subarray {
-    LEFT,
-    RIGHT;
-}
-
 @SuppressWarnings("hiding")
 final public class HolyGrailSort<T> {
+    enum LocalMerge {
+        FORWARDS,
+        BACKWARDS;
+    }
+
+    //Credit to phoenixbound for this clever idea
+    enum Subarray {
+        LEFT,
+        RIGHT;
+    }
+
     private Comparator<T> cmp;
 
     final static int STATIC_EXT_BUFFER_LEN = 512;
