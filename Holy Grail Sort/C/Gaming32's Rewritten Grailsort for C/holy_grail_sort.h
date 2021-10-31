@@ -1,5 +1,5 @@
-#ifndef GRAILSORT_H
-#define GRAILSORT_H
+#ifndef HOLY_GRAIL_SORT_H
+#define HOLY_GRAIL_SORT_H
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,19 +12,19 @@
     #pragma diag_suppress 28 // This suppresses the "expression must have a constant value" on line 181
 #endif
 
-#define GRAIL_STATIC_EXT_BUFFER_LEN 512
+#define HOLY_GRAIL_STATIC_EXT_BUFFER_LEN 512
 
 typedef int GRAILCMP(const void *a, const void *b);
 
 typedef enum {
-	GRAIL_SUBARRAY_LEFT,
-	GRAIL_SUBARRAY_RIGHT
-} GrailSubarray;
+	HOLY_GRAIL_SUBARRAY_LEFT,
+	HOLY_GRAIL_SUBARRAY_RIGHT
+} HolyGrailSubarray;
 
 typedef struct {
     size_t currBlockLen;
-	GrailSubarray currBlockOrigin;
-} GrailState;
+	HolyGrailSubarray currBlockOrigin;
+} HolyGrailState;
 
 //////////////////////////////////////////////////////////
 //┌────────────────────────────────────────────────────┐//
@@ -134,19 +134,19 @@ typedef struct {
 #endif
 
 
-/////////////////////////////////////////////////////////////////////////////////
-//┌───────────────────────────────────────────────────────────────────────────┐//
-//│    ██████╗ ██████╗  █████╗ ██╗██╗     ███████╗ ██████╗ ██████╗ ████████╗  │//
-//│   ██╔════╝ ██╔══██╗██╔══██╗██║██║     ██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝  │//
-//│   ██║  ███╗██████╔╝███████║██║██║     ███████╗██║   ██║██████╔╝   ██║     │//
-//│   ██║   ██║██╔══██╗██╔══██║██║██║     ╚════██║██║   ██║██╔══██╗   ██║     │//
-//│   ╚██████╔╝██║  ██║██║  ██║██║███████╗███████║╚██████╔╝██║  ██║   ██║     │//
-//│    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝     │//
-//└───────────────────────────────────────────────────────────────────────────┘//
-/////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//┌──────────────────────────────────────────────────────────────────────────────────────────────────────────┐//
+//│   ██╗  ██╗ ██████╗ ██╗  ██╗   ██╗ ██████╗ ██████╗  █████╗ ██╗██╗     ███████╗ ██████╗ ██████╗ ████████╗  │//
+//│   ██║  ██║██╔═══██╗██║  ╚██╗ ██╔╝██╔════╝ ██╔══██╗██╔══██╗██║██║     ██╔════╝██╔═══██╗██╔══██╗╚══██╔══╝  │//
+//│   ███████║██║   ██║██║   ╚████╔╝ ██║  ███╗██████╔╝███████║██║██║     ███████╗██║   ██║██████╔╝   ██║     │//
+//│   ██╔══██║██║   ██║██║    ╚██╔╝  ██║   ██║██╔══██╗██╔══██║██║██║     ╚════██║██║   ██║██╔══██╗   ██║     │//
+//│   ██║  ██║╚██████╔╝███████╗██║   ╚██████╔╝██║  ██║██║  ██║██║███████╗███████║╚██████╔╝██║  ██║   ██║     │//
+//│   ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝    ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝╚══════╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝     │//
+//└──────────────────────────────────────────────────────────────────────────────────────────────────────────┘//
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void grailCommonSort(void *array, size_t nelements, void *extBuffer, size_t extBufferLen, size_t elemsize, GRAILCMP *cmp)
+void holyGrailCommonSort(void *array, size_t nelements, void *extBuffer, size_t extBufferLen, size_t elemsize, GRAILCMP *cmp)
 {
 	if (nelements < 2)
 	{
@@ -156,20 +156,20 @@ void grailCommonSort(void *array, size_t nelements, void *extBuffer, size_t extB
 	switch (elemsize)
 	{
 		case sizeof(char):
-			return grailCommonSort8(array, nelements, extBuffer, extBufferLen, cmp);
+			return holyGrailCommonSort8(array, nelements, extBuffer, extBufferLen, cmp);
 
 		case sizeof(short):
-			return grailCommonSort16(array, nelements, extBuffer, extBufferLen, cmp);
+			return holyGrailCommonSort16(array, nelements, extBuffer, extBufferLen, cmp);
 
 		case sizeof(int):
-			return grailCommonSort32(array, nelements, extBuffer, extBufferLen, cmp);
+			return holyGrailCommonSort32(array, nelements, extBuffer, extBufferLen, cmp);
 
 		case sizeof(long long):
-			return grailCommonSort64(array, nelements, extBuffer, extBufferLen, cmp);
+			return holyGrailCommonSort64(array, nelements, extBuffer, extBufferLen, cmp);
 
 #ifndef _WIN32
 		case sizeof(long double):
-			return grailCommonSort128(array, nelements, extBuffer, extBufferLen, cmp);
+			return holyGrailCommonSort128(array, nelements, extBuffer, extBufferLen, cmp);
 #endif
 
 		default:
@@ -177,22 +177,22 @@ void grailCommonSort(void *array, size_t nelements, void *extBuffer, size_t extB
 	}
 }
 
-void grailSortInPlace(void *array, size_t nelements, size_t elemsize, GRAILCMP *cmp) {
-    grailCommonSort(array, nelements, NULL, 0, elemsize, cmp);
+void holyGrailSortInPlace(void *array, size_t nelements, size_t elemsize, GRAILCMP *cmp) {
+    holyGrailCommonSort(array, nelements, NULL, 0, elemsize, cmp);
 }
 
-void grailSortStaticOOP(void *array, size_t nelements, size_t elemsize, GRAILCMP *cmp) {
-    char buffer[GRAIL_STATIC_EXT_BUFFER_LEN * elemsize];
-    grailCommonSort(array, nelements, (void*)buffer, GRAIL_STATIC_EXT_BUFFER_LEN, elemsize, cmp);
+void holyGrailSortStaticOOP(void *array, size_t nelements, size_t elemsize, GRAILCMP *cmp) {
+    char buffer[HOLY_GRAIL_STATIC_EXT_BUFFER_LEN * elemsize];
+    holyGrailCommonSort(array, nelements, (void*)buffer, HOLY_GRAIL_STATIC_EXT_BUFFER_LEN, elemsize, cmp);
 }
 
-void grailSortDynamicOOP(void *array, size_t nelements, size_t elemsize, GRAILCMP *cmp) {
+void holyGrailSortDynamicOOP(void *array, size_t nelements, size_t elemsize, GRAILCMP *cmp) {
     size_t bufferLen = 1;
     while (bufferLen * bufferLen < nelements) {
         bufferLen *= 2;
     }
     void* buffer = malloc(bufferLen * elemsize);
-    grailCommonSort(array, nelements, buffer, bufferLen, elemsize, cmp);
+    holyGrailCommonSort(array, nelements, buffer, bufferLen, elemsize, cmp);
     free(buffer);
 }
 

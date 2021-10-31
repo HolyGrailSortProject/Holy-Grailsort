@@ -92,7 +92,7 @@ int main() {
 
     printf("Sorting %i items...\n", ARRAY_LENGTH);
     clock_t start = clock();
-    grailSortInPlace(array, ARRAY_LENGTH, sizeof(GrailPair), compare_grailsort);
+    holyGrailSortInPlace(array, ARRAY_LENGTH, sizeof(GrailPair), compare_grailsort);
     clock_t end = clock();
     printf("Done sorting in ~%f seconds.\n", (double)(end - start) / CLOCKS_PER_SEC);
 
