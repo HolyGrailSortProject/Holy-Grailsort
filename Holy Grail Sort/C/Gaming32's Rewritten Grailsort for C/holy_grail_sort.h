@@ -14,7 +14,7 @@
 
 #define HOLY_GRAIL_STATIC_EXT_BUFFER_LEN 512
 
-typedef int GRAILCMP(const void *a, const void *b);
+typedef int HOLY_GRAIL_CMP(const void *a, const void *b);
 
 typedef enum {
 	HOLY_GRAIL_SUBARRAY_LEFT,
@@ -146,7 +146,7 @@ typedef struct {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void holyGrailCommonSort(void *array, size_t nelements, void *extBuffer, size_t extBufferLen, size_t elemsize, GRAILCMP *cmp)
+void holyGrailCommonSort(void *array, size_t nelements, void *extBuffer, size_t extBufferLen, size_t elemsize, HOLY_GRAIL_CMP *cmp)
 {
 	if (nelements < 2)
 	{
@@ -177,16 +177,16 @@ void holyGrailCommonSort(void *array, size_t nelements, void *extBuffer, size_t 
 	}
 }
 
-void holyGrailSortInPlace(void *array, size_t nelements, size_t elemsize, GRAILCMP *cmp) {
+void holyGrailSortInPlace(void *array, size_t nelements, size_t elemsize, HOLY_GRAIL_CMP *cmp) {
     holyGrailCommonSort(array, nelements, NULL, 0, elemsize, cmp);
 }
 
-void holyGrailSortStaticOOP(void *array, size_t nelements, size_t elemsize, GRAILCMP *cmp) {
+void holyGrailSortStaticOOP(void *array, size_t nelements, size_t elemsize, HOLY_GRAIL_CMP *cmp) {
     char buffer[HOLY_GRAIL_STATIC_EXT_BUFFER_LEN * elemsize];
     holyGrailCommonSort(array, nelements, (void*)buffer, HOLY_GRAIL_STATIC_EXT_BUFFER_LEN, elemsize, cmp);
 }
 
-void holyGrailSortDynamicOOP(void *array, size_t nelements, size_t elemsize, GRAILCMP *cmp) {
+void holyGrailSortDynamicOOP(void *array, size_t nelements, size_t elemsize, HOLY_GRAIL_CMP *cmp) {
     size_t bufferLen = 1;
     while (bufferLen * bufferLen < nelements) {
         bufferLen *= 2;

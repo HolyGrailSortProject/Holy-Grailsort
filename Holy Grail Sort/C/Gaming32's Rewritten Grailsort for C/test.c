@@ -10,9 +10,9 @@
     #define ZU "%zu"
 #endif
 
-#define ARRAY_LENGTH 16777216
-// #define ARRAY_LENGTH 16
-// #define ARRAY_LENGTH 128
+// #define ARRAY_LENGTH 16777216
+// #define ARRAY_LENGTH 15
+#define ARRAY_LENGTH 128
 
 #define RANDOM_LIMIT RAND_MAX
 // #define RANDOM_LIMIT 3
@@ -40,6 +40,15 @@ void printGrailArray(GrailPair* array) {
     printf("]\n");
 }
 
+size_t validateArrayOrdered(GrailPair* array) {
+    for (size_t i = 1; i < ARRAY_LENGTH; i++) {
+        if (array[i].key < array[i - 1].key) {
+            return i;
+        }
+    }
+    return SIZE_MAX;
+}
+
 size_t validateArrayWithCopy(GrailPair* initial, int* copy) {
     for (size_t i = 0; i < ARRAY_LENGTH; i++) {
         if (initial[i].key != copy[i]) {
@@ -52,7 +61,7 @@ size_t validateArrayWithCopy(GrailPair* initial, int* copy) {
 // assumes array is sorted
 size_t validateArrayStable(GrailPair* array) {
     for (size_t i = 1; i < ARRAY_LENGTH; i++) {
-        if (array[i].key < array[i - 1].key) {
+        if (array[i].value < array[i - 1].value) {
             return i;
         }
     }
@@ -96,18 +105,25 @@ int main() {
     clock_t end = clock();
     printf("Done sorting in ~%f seconds.\n", (double)(end - start) / CLOCKS_PER_SEC);
 
-    printf("Validating...\n");
-    size_t validation = validateArrayWithCopy(array, copy);
+    printf("Quick checking array...\n");
+    size_t validation = validateArrayOrdered(array);
     if (validation < SIZE_MAX) {
-        printf("Sorted validation failed! array["ZU"] != copy["ZU"]\n", validation, validation);
+        printf("Quick check failed! array["ZU"].key > array["ZU"].key\n", validation - 1, validation);
         return 1;
+    }
+
+    printf("Validating...\n");
+    validation = validateArrayWithCopy(array, copy);
+    if (validation < SIZE_MAX) {
+        printf("Sorted validation failed! array["ZU"].key != copy["ZU"].key\n", validation, validation);
+        return 2;
     }
     printf("Sorted validation success!\n");
 
     validation = validateArrayStable(array);
     if (validation < SIZE_MAX) {
-        printf("Stability validation failed! array["ZU"] > array["ZU"]\n", validation - 1, validation);
-        return 2;
+        printf("Stability validation failed! array["ZU"].value > array["ZU"].value\n", validation - 1, validation);
+        return 3;
     }
     printf("Stability validation success!\n");
 
