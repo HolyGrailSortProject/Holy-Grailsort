@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class Tester {
+    static class SortFailedException extends Exception {
+    }
+
     static interface IntegerPair {
         public Integer getKey();
         public Integer getValue();
@@ -93,7 +96,7 @@ public class Tester {
         return true;
     }
 
-    private void checkAlgorithm(int start, int length, int keyCount, boolean grailSort, int grailBufferType, String grailStrategy, GrailComparator test) throws Exception {
+    private void checkAlgorithm(int start, int length, int keyCount, boolean grailSort, int grailBufferType, String grailStrategy, GrailComparator test) throws SortFailedException {
         this.generateTestArray(start, length, keyCount);
         this.referenceArray = Arrays.copyOf(this.keyArray, start + length);
 
@@ -154,7 +157,7 @@ public class Tester {
         }
         else {
             System.out.print(" but the sort was NOT successful!!\nReason: " + this.failReason);
-            throw new Exception();
+            throw new SortFailedException();
         }
 
         // Sometimes the garbage collector wasn't cooperating.
@@ -164,7 +167,7 @@ public class Tester {
         System.gc();
     }
 
-    private void checkBoth(int start, int length, int keyCount, String grailStrategy, GrailComparator test) throws Exception {
+    private void checkBoth(int start, int length, int keyCount, String grailStrategy, GrailComparator test) throws SortFailedException {
         int tempSeed = this.seed;
         if(!grailStrategy.equals("Opti.Gnome")) {
             for(int i = 0; i < 3; i++) {
@@ -252,10 +255,9 @@ public class Tester {
             testClass.checkBoth(       0,       15,        4, "Opti.Gnome", testCompare);
 
             System.out.println("\nAll tests passed successfully!!");
-        }
-        catch (Exception e) {
+        } catch (SortFailedException e) {
             System.out.println("\nTesting failed!!\n");
-            e.printStackTrace();
+            System.exit(1);
         }
     }
 }
