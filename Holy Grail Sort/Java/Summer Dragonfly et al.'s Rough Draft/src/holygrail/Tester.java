@@ -35,7 +35,6 @@ class GrailComparator implements Comparator<GrailPair> {
 }
 
 public class Tester {
-
     public Tester() {
         new HolyGrailSort<GrailPair>(new GrailComparator());
     }
