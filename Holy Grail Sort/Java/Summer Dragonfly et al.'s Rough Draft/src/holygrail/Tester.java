@@ -218,7 +218,7 @@ public class Tester {
         int maxLength   = 50000000;
         int maxKeyCount = 25000000;
 
-        Tester testClass = new Tester(maxLength, maxKeyCount);
+        Tester tester = new Tester(maxLength, maxKeyCount);
         GrailComparator testCompare = new GrailComparator();
 
         System.out.println("Warming-up the JVM...");
@@ -226,65 +226,39 @@ public class Tester {
         for(int u = 5; u <= (maxLength / 100); u *= 10) {
             for(int v = 2; v <= u && v <= (maxKeyCount / 100); v *= 2) {
                 for(int i = 0; i < 3; i++) {
-                    testClass.checkAlgorithm(0, u, v - 1, true, i, "All Strategies", testCompare);
+                    tester.checkAlgorithm(0, u, v - 1, true, i, "All Strategies", testCompare);
                 }
             }
         }
 
         System.out.println("\n*** Testing Holy Grail Sort against Tim Sort ***");
 
-        testClass.checkBoth(       0,       15,        4, "Opti.Gnome", testCompare);
-        testClass.checkBoth(       0,       15,        8, "Opti.Gnome", testCompare);
-        testClass.checkBoth(       7,        8,        4, "Opti.Gnome", testCompare);
+        tester.checkBoth(       0,       15,        4, "Opti.Gnome", testCompare);
+        tester.checkBoth(       0,       15,        8, "Opti.Gnome", testCompare);
+        tester.checkBoth(       7,        8,        4, "Opti.Gnome", testCompare);
 
-        testClass.checkBoth(       0,  1000000,        3, "Strategy 3", testCompare);
-        testClass.checkBoth(       0,  1000000,     1023, "Strategy 2", testCompare);
-        testClass.checkBoth(       0,  1000000,   500000, "Strategy 1", testCompare);
-        testClass.checkBoth(  500000,   500000,        3, "Strategy 3", testCompare);
-        testClass.checkBoth(  500000,   500000,      511, "Strategy 2", testCompare);
-        testClass.checkBoth(  500000,   500000,   250000, "Strategy 1", testCompare);
+        tester.checkBoth(       0,  1000000,        3, "Strategy 3", testCompare);
+        tester.checkBoth(       0,  1000000,     1023, "Strategy 2", testCompare);
+        tester.checkBoth(       0,  1000000,   500000, "Strategy 1", testCompare);
+        tester.checkBoth(  500000,   500000,        3, "Strategy 3", testCompare);
+        tester.checkBoth(  500000,   500000,      511, "Strategy 2", testCompare);
+        tester.checkBoth(  500000,   500000,   250000, "Strategy 1", testCompare);
 
-        testClass.checkBoth(       0, 10000000,        3, "Strategy 3", testCompare);
-        testClass.checkBoth(       0, 10000000,     4095, "Strategy 2", testCompare);
-        testClass.checkBoth(       0, 10000000,  5000000, "Strategy 1", testCompare);
-        testClass.checkBoth( 5000000,  5000000,        3, "Strategy 3", testCompare);
-        testClass.checkBoth( 5000000,  5000000,     2047, "Strategy 2", testCompare);
-        testClass.checkBoth( 5000000,  5000000,  2500000, "Strategy 1", testCompare);
+        tester.checkBoth(       0, 10000000,        3, "Strategy 3", testCompare);
+        tester.checkBoth(       0, 10000000,     4095, "Strategy 2", testCompare);
+        tester.checkBoth(       0, 10000000,  5000000, "Strategy 1", testCompare);
+        tester.checkBoth( 5000000,  5000000,        3, "Strategy 3", testCompare);
+        tester.checkBoth( 5000000,  5000000,     2047, "Strategy 2", testCompare);
+        tester.checkBoth( 5000000,  5000000,  2500000, "Strategy 1", testCompare);
 
-        testClass.checkBoth(       0, 50000000,        3, "Strategy 3", testCompare);
-        testClass.checkBoth(       0, 50000000,    16383, "Strategy 2", testCompare);
-        testClass.checkBoth(       0, 50000000, 25000000, "Strategy 1", testCompare);
-        testClass.checkBoth(25000000, 25000000,        3, "Strategy 3", testCompare);
-        testClass.checkBoth(25000000, 25000000,     8191, "Strategy 2", testCompare);
-        testClass.checkBoth(25000000, 25000000, 12500000, "Strategy 1", testCompare);
+        tester.checkBoth(       0, 50000000,        3, "Strategy 3", testCompare);
+        tester.checkBoth(       0, 50000000,    16383, "Strategy 2", testCompare);
+        tester.checkBoth(       0, 50000000, 25000000, "Strategy 1", testCompare);
+        tester.checkBoth(25000000, 25000000,        3, "Strategy 3", testCompare);
+        tester.checkBoth(25000000, 25000000,     8191, "Strategy 2", testCompare);
+        tester.checkBoth(25000000, 25000000, 12500000, "Strategy 1", testCompare);
 
-
-        testClass.checkBoth(25000000, 25000000, 12500000, "Strategy 1", testCompare);
-        testClass.checkBoth(25000000, 25000000,     8191, "Strategy 2", testCompare);
-        testClass.checkBoth(25000000, 25000000,        3, "Strategy 3", testCompare);
-        testClass.checkBoth(       0, 50000000, 25000000, "Strategy 1", testCompare);
-        testClass.checkBoth(       0, 50000000,    16383, "Strategy 2", testCompare);
-        testClass.checkBoth(       0, 50000000,        3, "Strategy 3", testCompare);
-
-        testClass.checkBoth( 5000000,  5000000,  2500000, "Strategy 1", testCompare);
-        testClass.checkBoth( 5000000,  5000000,     2047, "Strategy 2", testCompare);
-        testClass.checkBoth( 5000000,  5000000,        3, "Strategy 3", testCompare);
-        testClass.checkBoth(       0, 10000000,  5000000, "Strategy 1", testCompare);
-        testClass.checkBoth(       0, 10000000,     4095, "Strategy 2", testCompare);
-        testClass.checkBoth(       0, 10000000,        3, "Strategy 3", testCompare);
-
-        testClass.checkBoth(  500000,   500000,   250000, "Strategy 1", testCompare);
-        testClass.checkBoth(  500000,   500000,      511, "Strategy 2", testCompare);
-        testClass.checkBoth(  500000,   500000,        3, "Strategy 3", testCompare);
-        testClass.checkBoth(       0,  1000000,   500000, "Strategy 1", testCompare);
-        testClass.checkBoth(       0,  1000000,     1023, "Strategy 2", testCompare);
-        testClass.checkBoth(       0,  1000000,        3, "Strategy 3", testCompare);
-
-        testClass.checkBoth(       7,        8,        4, "Opti.Gnome", testCompare);
-        testClass.checkBoth(       0,       15,        8, "Opti.Gnome", testCompare);
-        testClass.checkBoth(       0,       15,        4, "Opti.Gnome", testCompare);
-
-        System.out.println("Ran " + testClass.count + " tests with " + testClass.successes + " success(es) and " + testClass.failures + " failure(s).");
-        System.exit(testClass.failures);
+        System.out.println("Ran " + tester.count + " tests with " + tester.successes + " success(es) and " + tester.failures + " failure(s).");
+        System.exit(tester.failures);
     }
 }
