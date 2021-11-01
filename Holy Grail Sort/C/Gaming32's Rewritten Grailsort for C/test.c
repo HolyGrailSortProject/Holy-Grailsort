@@ -40,6 +40,14 @@ void printGrailArray(GrailPair* array) {
     printf("]\n");
 }
 
+void printGrailArrayWithStability(GrailPair* array) {
+    printf("[%i:%i", array->key, array->value);
+    for (size_t i = 1; i < ARRAY_LENGTH; i++) {
+        printf(", %i:%i", array[i].key, array[i].value);
+    }
+    printf("]\n");
+}
+
 size_t validateArrayOrdered(GrailPair* array) {
     for (size_t i = 1; i < ARRAY_LENGTH; i++) {
         if (array[i].key < array[i - 1].key) {
@@ -61,6 +69,7 @@ size_t validateArrayWithCopy(GrailPair* initial, int* copy) {
 // assumes array is sorted
 size_t validateArrayStable(GrailPair* array) {
     for (size_t i = 1; i < ARRAY_LENGTH; i++) {
+        if (array[i].key > array[i - 1].key) continue;
         if (array[i].value < array[i - 1].value) {
             return i;
         }
@@ -112,21 +121,21 @@ int main() {
 
     printf("Quick checking array...\n");
     size_t validation = validateArrayOrdered(array);
-    if (validation < SIZE_MAX) {
+    if (validation != SIZE_MAX) {
         printf("Quick check failed! array["ZU"].key > array["ZU"].key\n", validation - 1, validation);
         return 1;
     }
 
     printf("Validating...\n");
     validation = validateArrayWithCopy(array, copy);
-    if (validation < SIZE_MAX) {
+    if (validation != SIZE_MAX) {
         printf("Sorted validation failed! array["ZU"].key != copy["ZU"].key\n", validation, validation);
         return 2;
     }
     printf("Sorted validation success!\n");
 
     validation = validateArrayStable(array);
-    if (validation < SIZE_MAX) {
+    if (validation != SIZE_MAX) {
         printf("Stability validation failed! array["ZU"].value > array["ZU"].value\n", validation - 1, validation);
         return 3;
     }
