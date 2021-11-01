@@ -15,7 +15,8 @@
 #define ARRAY_LENGTH 128
 
 // #define RANDOM_LIMIT RAND_MAX
-#define RANDOM_LIMIT 3
+#define RANDOM_LIMIT ARRAY_LENGTH
+// #define RANDOM_LIMIT 3
 
 #define RANDOM_SEED time(NULL)
 
