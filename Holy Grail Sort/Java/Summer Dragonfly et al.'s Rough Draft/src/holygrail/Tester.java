@@ -138,10 +138,10 @@ public class Tester {
         }
 
         if(grailSort) {
-            System.out.println("\n* Grailsort " + grailType + ", " + grailStrategy + " \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
+            System.out.println("\n* Holy Grail Sort " + grailType + ", " + grailStrategy + " \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
         }
         else {
-            System.out.println("\n* Arrays.sort (Timsort)  \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
+            System.out.println("\n* Arrays.sort (Tim Sort)  \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
         }
 
         long begin;
@@ -153,12 +153,12 @@ public class Tester {
             GrailPair[] buffer = null;
             int bufferLen = 0;
 
-            // Grailsort with static buffer
+            // Holy Grail Sort with static buffer
             if(grailBufferType == 1) {
                 buffer    = (GrailPair[]) Array.newInstance(this.keyArray.getClass().getComponentType(), HolyGrailSort.STATIC_EXT_BUFFER_LEN);
                 bufferLen = HolyGrailSort.STATIC_EXT_BUFFER_LEN;
             }
-            // Grailsort with dynamic buffer
+            // Holy Grail Sort with dynamic buffer
             else if(grailBufferType == 2) {
                 bufferLen = 1;
                 while((bufferLen * bufferLen) < length) {
@@ -231,7 +231,7 @@ public class Tester {
             }
         }
 
-        System.out.println("\n*** Testing Grailsort against Timsort ***");
+        System.out.println("\n*** Testing Holy Grail Sort against Tim Sort ***");
 
         testClass.checkBoth(       0,       15,        4, "Opti.Gnome", testCompare);
         testClass.checkBoth(       0,       15,        8, "Opti.Gnome", testCompare);
