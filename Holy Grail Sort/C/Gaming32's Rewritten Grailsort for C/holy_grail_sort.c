@@ -222,6 +222,19 @@ static void FUNC(holyGrailCommonSort)(VAR* start, size_t length, VAR* extBuffer,
 
             FUNC(holyGrailLazyStableSort)(start, end, length, cmp);
             return;
+        } else {
+            keyLen = blockLen;
+            blockLen = 0;
+            idealBuffer = false;
+
+            while (keyLen > keysFound) {
+                keyLen /= 2;
+            }
         }
+    } else {
+        idealBuffer = true;
     }
+
+    size_t bufferLen = blockLen + keyLen;
+    size_t subarrayLen = idealBuffer ? blockLen : keyLen;
 }
