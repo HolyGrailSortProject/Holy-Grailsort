@@ -1,0 +1,20 @@
+name: Test sorts
+on: [push, pull_request]
+
+jobs:
+  test_java:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: "Holy Grail Sort/Java/Summer Dragonfly et al.'s Rough Draft"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Java
+        uses: actions/setup-java@v2.1.0
+        with:
+          java-version: 8
+          distribution: zulu
+      - name: Build Tester
+        run: javac -d bin src/holygrail/*.java
+      - name: Run Tester
+        run: java -cp bin holygrail.Tester
