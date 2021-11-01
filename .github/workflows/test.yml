@@ -2,19 +2,35 @@ name: Test sorts
 on: [push, pull_request]
 
 jobs:
-  test_java:
+  # test_java:
+  #   runs-on: ubuntu-latest
+  #   defaults:
+  #     run:
+  #       working-directory: "Holy Grail Sort/Java/Summer Dragonfly et al.'s Rough Draft"
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #     - name: Setup Java
+  #       uses: actions/setup-java@v2.1.0
+  #       with:
+  #         java-version: 8
+  #         distribution: zulu
+  #     - name: Build Tester
+  #       run: javac -d bin src/holygrail/*.java
+  #     - name: Run Tester
+  #       run: java -cp bin holygrail.Tester
+  test_c:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: "Holy Grail Sort/Java/Summer Dragonfly et al.'s Rough Draft"
+        working-directory: "Holy Grail Sort/C/Gaming32's Rewritten Grailsort for C"
     steps:
       - uses: actions/checkout@v2
-      - name: Setup Java
-        uses: actions/setup-java@v2.1.0
+      - name: Setup GCC
+        uses: egor-tensin/setup-gcc@v1
         with:
-          java-version: 8
-          distribution: zulu
-      - name: Build Tester
-        run: javac -d bin src/holygrail/*.java
-      - name: Run Tester
-        run: java -cp bin holygrail.Tester
+          version: latest
+          platform: x64
+      - name: Build test
+        run: gcc -O3 test.c -o hgs_test
+      - name: Run test
+        run: ./hgs_test
