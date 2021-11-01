@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   test_java:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest # Use macOS because it gives us more memory (14 GB instead of 7 GB)
     defaults:
       run:
         working-directory: "Holy Grail Sort/Java/Summer Dragonfly et al.'s Rough Draft"
@@ -17,4 +17,4 @@ jobs:
       - name: Build Tester
         run: javac -d bin src/holygrail/*.java
       - name: Run Tester
-        run: java -cp bin holygrail.Tester
+        run: java -Xmx12G -cp bin -XmX holygrail.Tester
