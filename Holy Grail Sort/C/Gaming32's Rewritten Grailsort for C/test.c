@@ -14,8 +14,8 @@
 // #define ARRAY_LENGTH 15
 #define ARRAY_LENGTH 128
 
-#define RANDOM_LIMIT RAND_MAX
-// #define RANDOM_LIMIT 3
+// #define RANDOM_LIMIT RAND_MAX
+#define RANDOM_LIMIT 3
 
 #define RANDOM_SEED time(NULL)
 
@@ -73,14 +73,19 @@ int main() {
 
     printf("Initializing array...\n");
     GrailPair* array = malloc(ARRAY_LENGTH * sizeof(GrailPair));
-    for (size_t i = 0; i < ARRAY_LENGTH; i++) {
-        // array[i].key = (int)(rand() / (double)RAND_MAX * RANDOM_LIMIT);
-        array[i].key = rand();
+    if (RANDOM_LIMIT == RAND_MAX) {
+        for (size_t i = 0; i < ARRAY_LENGTH; i++) {
+            array[i].key = rand();
+        }
+    } else {
+        for (size_t i = 0; i < ARRAY_LENGTH; i++) {
+            array[i].key = (int)(rand() / (double)RAND_MAX * RANDOM_LIMIT);
+        }
     }
 
     printf("Initializing empty counts...\n");
-    size_t* counts = malloc((RAND_MAX + 1) * sizeof(size_t));
-    for (size_t i = 0; i < RAND_MAX + 1; i++) {
+    size_t* counts = malloc((RANDOM_LIMIT + 1) * sizeof(size_t));
+    for (size_t i = 0; i < RANDOM_LIMIT + 1; i++) {
         counts[i] = 0;
     }
 

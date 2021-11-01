@@ -17,7 +17,7 @@ static inline void FUNC(holyGrailSwap)(VAR* a, VAR* b) {
 }
 
 static inline void FUNC(holyGrailSwapBlocksBackwards)(VAR* a, VAR* b, size_t blockLen) {
-    for (size_t i = blockLen - 1; i >= 0; i--) {
+    for (size_t i = blockLen - 1; i != SIZE_MAX; i--) {
         FUNC(holyGrailSwap)(a + i, b + i);
     }
 }
@@ -32,7 +32,7 @@ static inline void FUNC(holyGrailRotate)(VAR* start, size_t leftLen, size_t righ
     size_t minLen = leftLen < rightLen ? leftLen : rightLen;
 
     while (minLen > 1) {
-        if (rightLen > leftLen) {
+        if (leftLen > rightLen) {
             do {
                 FUNC(holyGrailSwapBlocksBackwards)(start + leftLen - rightLen, start + leftLen, rightLen);
                 leftLen -= rightLen;
@@ -57,6 +57,22 @@ static inline void FUNC(holyGrailRotate)(VAR* start, size_t leftLen, size_t righ
             FUNC(holyGrailInsertBackwards)(start, start + leftLen);
         }
     }
+}
+
+static size_t FUNC(holyGrailBinarySearchRight)(VAR* start, VAR* end, VAR* target, HOLY_GRAIL_CMP cmp) {
+    VAR* left = start;
+    VAR* right = end;
+
+    while (left < right) {
+        VAR* middle = left + ((right - left) >> 1);
+
+        if (cmp(middle, target) > 0) {
+            right = middle;
+        } else {
+            left = middle + 1;
+        }
+    }
+    return right - start;
 }
 
 static void FUNC(holyGrailInsertSort)(VAR* start, VAR *end, HOLY_GRAIL_CMP cmp) {
@@ -116,7 +132,7 @@ static size_t FUNC(holyGrailCollectKeys)(VAR* start, VAR* end, size_t idealKeys,
             firstKey = currKey - keysFound;
 
             if (keysFound != insertPos) {
-                FUNC(holyGrailInsertBackwards)(firstKey + insertPos, start + keysFound - insertPos);
+                FUNC(holyGrailInsertBackwards)(firstKey + insertPos, firstKey + keysFound);
             }
 
             keysFound++;
@@ -126,6 +142,57 @@ static size_t FUNC(holyGrailCollectKeys)(VAR* start, VAR* end, size_t idealKeys,
 
     FUNC(holyGrailRotate)(start, firstKey - start, keysFound);
     return keysFound;
+}
+
+static void FUNC(holyGrailLazyMergeBackwards)(VAR* start, size_t leftLen, size_t rightLen, HOLY_GRAIL_CMP cmp) {
+    VAR* end = start + leftLen + rightLen - 1;
+
+    while (rightLen != 0) {
+        size_t mergeLen = FUNC(holyGrailBinarySearchRight)(start, start + leftLen, end, cmp);
+
+        if (mergeLen != leftLen) {
+            FUNC(holyGrailRotate)(start + mergeLen, leftLen - mergeLen, rightLen);
+
+            end -= leftLen - mergeLen;
+            leftLen = mergeLen;
+        }
+
+        if (leftLen == 0) {
+            break;
+        } else {
+            VAR* middle = start + leftLen;
+            // TODO: Replace with galloping search
+            do {
+                rightLen--;
+                end--;
+            } while (rightLen != 0 && cmp(middle - 1, end) <= 0);
+        }
+    }
+}
+
+static void FUNC(holyGrailLazyStableSort)(VAR* start, VAR* end, size_t length, HOLY_GRAIL_CMP cmp) {
+    VAR* i;
+    for (i = start; i <= end - 16; i += 16) {
+        FUNC(holyGrailInsertSort)(i, i + 16, cmp);
+    }
+    FUNC(holyGrailInsertSort)(i, end, cmp);
+
+    size_t fullMerge;
+    for (size_t mergeLen = 16; mergeLen < length; mergeLen = fullMerge) {
+        fullMerge = 2 * mergeLen;
+
+        VAR* mergeIndex;
+        VAR* mergeEnd = end - fullMerge;
+
+        for (mergeIndex = start; mergeIndex <= mergeEnd; mergeIndex += fullMerge) {
+            FUNC(holyGrailLazyMergeBackwards)(mergeIndex, mergeLen, mergeLen, cmp);
+        }
+
+        size_t leftOver = end - mergeIndex;
+        if (leftOver > mergeLen) {
+            FUNC(holyGrailLazyMergeBackwards)(mergeIndex, mergeLen, leftOver - mergeLen, cmp);
+        }
+    }
 }
 
 static void FUNC(holyGrailCommonSort)(VAR* start, size_t length, VAR* extBuffer, size_t extBufferLen, HOLY_GRAIL_CMP cmp) {
@@ -147,4 +214,14 @@ static void FUNC(holyGrailCommonSort)(VAR* start, size_t length, VAR* extBuffer,
     size_t idealKeys = keyLen + blockLen;
 
     size_t keysFound = FUNC(holyGrailCollectKeys)(start, end, idealKeys, cmp);
+
+    bool idealBuffer;
+    if (keysFound < idealKeys) {
+        if (keysFound < 4) {
+            if (keysFound == 1) return;
+
+            FUNC(holyGrailLazyStableSort)(start, end, length, cmp);
+            return;
+        }
+    }
 }
