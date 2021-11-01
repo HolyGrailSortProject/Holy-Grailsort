@@ -5,9 +5,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public class Tester {
-    static class SortFailedException extends Exception {
-    }
-
     static interface IntegerPair {
         public Integer getKey();
         public Integer getValue();
@@ -41,17 +38,25 @@ public class Tester {
     }
 
     private int seed;
+    private int maxLength, maxKeyCount;
 
     private GrailPair[] keyArray;
     private GrailPair[] referenceArray;
     private Integer[]   valueArray;
 
     private String failReason;
+    private int count, successes, failures;
 
     public Tester(int maxLength, int maxKeyCount) {
-        this.seed       = 100000001;
-        this.keyArray  = new GrailPair[maxLength];
-        this.valueArray = new Integer[maxKeyCount];
+        this.seed        = 100000001;
+        this.maxLength   = maxLength;
+        this.maxKeyCount = maxKeyCount;
+        initArrays();
+    }
+
+    private void initArrays() {
+        this.keyArray  = new GrailPair[this.maxLength];
+        this.valueArray = new Integer[this.maxKeyCount];
     }
 
     private int getRandomNumber(int key) {
@@ -96,7 +101,31 @@ public class Tester {
         return true;
     }
 
-    private void checkAlgorithm(int start, int length, int keyCount, boolean grailSort, int grailBufferType, String grailStrategy, GrailComparator test) throws SortFailedException {
+    private void checkAlgorithm(int start, int length, int keyCount, boolean grailSort, int grailBufferType, String grailStrategy, GrailComparator test) {
+        try {
+            checkAlgorithm0(start, length, keyCount, grailSort, grailBufferType, grailStrategy, test);
+        } catch (OutOfMemoryError e) {
+            System.err.println("Warning: tester ran out of memory");
+            e.printStackTrace();
+            System.err.println("Purging data...");
+            keyArray = null;
+            referenceArray = null;
+            valueArray = null;
+            System.gc();
+            System.err.println("Re-initializing arrays...");
+            initArrays();
+            System.err.println("Re-running check...");
+            checkAlgorithm(start, length, keyCount, grailSort, grailBufferType, grailStrategy, test);
+        }
+        catch (Exception e) {
+            System.out.println("Sort failed with exception:");
+            e.printStackTrace();
+            this.failures++;
+            this.count++;
+        }
+    }
+
+    private void checkAlgorithm0(int start, int length, int keyCount, boolean grailSort, int grailBufferType, String grailStrategy, GrailComparator test) {
         this.generateTestArray(start, length, keyCount);
         this.referenceArray = Arrays.copyOf(this.keyArray, start + length);
 
@@ -154,11 +183,13 @@ public class Tester {
         boolean success = this.testArray(start, length, test);
         if(success) {
             System.out.print(" and the sort was successful!\n");
+            this.successes++;
         }
         else {
             System.out.print(" but the sort was NOT successful!!\nReason: " + this.failReason);
-            throw new SortFailedException();
+            this.failures++;
         }
+        this.count++;
 
         // Sometimes the garbage collector wasn't cooperating.
         Arrays.fill(this.keyArray,       null);
@@ -167,7 +198,7 @@ public class Tester {
         System.gc();
     }
 
-    private void checkBoth(int start, int length, int keyCount, String grailStrategy, GrailComparator test) throws SortFailedException {
+    private void checkBoth(int start, int length, int keyCount, String grailStrategy, GrailComparator test) {
         int tempSeed = this.seed;
         if(!grailStrategy.equals("Opti.Gnome")) {
             for(int i = 0; i < 3; i++) {
@@ -192,72 +223,68 @@ public class Tester {
 
         System.out.println("Warming-up the JVM...");
 
-        try {
-            for(int u = 5; u <= (maxLength / 100); u *= 10) {
-                for(int v = 2; v <= u && v <= (maxKeyCount / 100); v *= 2) {
-                    for(int i = 0; i < 3; i++) {
-                        testClass.checkAlgorithm(0, u, v - 1, true, i, "All Strategies", testCompare);
-                    }
+        for(int u = 5; u <= (maxLength / 100); u *= 10) {
+            for(int v = 2; v <= u && v <= (maxKeyCount / 100); v *= 2) {
+                for(int i = 0; i < 3; i++) {
+                    testClass.checkAlgorithm(0, u, v - 1, true, i, "All Strategies", testCompare);
                 }
             }
-
-            System.out.println("\n*** Testing Grailsort against Timsort ***");
-
-            testClass.checkBoth(       0,       15,        4, "Opti.Gnome", testCompare);
-            testClass.checkBoth(       0,       15,        8, "Opti.Gnome", testCompare);
-            testClass.checkBoth(       7,        8,        4, "Opti.Gnome", testCompare);
-
-            testClass.checkBoth(       0,  1000000,        3, "Strategy 3", testCompare);
-            testClass.checkBoth(       0,  1000000,     1023, "Strategy 2", testCompare);
-            testClass.checkBoth(       0,  1000000,   500000, "Strategy 1", testCompare);
-            testClass.checkBoth(  500000,   500000,        3, "Strategy 3", testCompare);
-            testClass.checkBoth(  500000,   500000,      511, "Strategy 2", testCompare);
-            testClass.checkBoth(  500000,   500000,   250000, "Strategy 1", testCompare);
-
-            testClass.checkBoth(       0, 10000000,        3, "Strategy 3", testCompare);
-            testClass.checkBoth(       0, 10000000,     4095, "Strategy 2", testCompare);
-            testClass.checkBoth(       0, 10000000,  5000000, "Strategy 1", testCompare);
-            testClass.checkBoth( 5000000,  5000000,        3, "Strategy 3", testCompare);
-            testClass.checkBoth( 5000000,  5000000,     2047, "Strategy 2", testCompare);
-            testClass.checkBoth( 5000000,  5000000,  2500000, "Strategy 1", testCompare);
-
-            testClass.checkBoth(       0, 50000000,        3, "Strategy 3", testCompare);
-            testClass.checkBoth(       0, 50000000,    16383, "Strategy 2", testCompare);
-            testClass.checkBoth(       0, 50000000, 25000000, "Strategy 1", testCompare);
-            testClass.checkBoth(25000000, 25000000,        3, "Strategy 3", testCompare);
-            testClass.checkBoth(25000000, 25000000,     8191, "Strategy 2", testCompare);
-            testClass.checkBoth(25000000, 25000000, 12500000, "Strategy 1", testCompare);
-
-
-            testClass.checkBoth(25000000, 25000000, 12500000, "Strategy 1", testCompare);
-            testClass.checkBoth(25000000, 25000000,     8191, "Strategy 2", testCompare);
-            testClass.checkBoth(25000000, 25000000,        3, "Strategy 3", testCompare);
-            testClass.checkBoth(       0, 50000000, 25000000, "Strategy 1", testCompare);
-            testClass.checkBoth(       0, 50000000,    16383, "Strategy 2", testCompare);
-            testClass.checkBoth(       0, 50000000,        3, "Strategy 3", testCompare);
-
-            testClass.checkBoth( 5000000,  5000000,  2500000, "Strategy 1", testCompare);
-            testClass.checkBoth( 5000000,  5000000,     2047, "Strategy 2", testCompare);
-            testClass.checkBoth( 5000000,  5000000,        3, "Strategy 3", testCompare);
-            testClass.checkBoth(       0, 10000000,  5000000, "Strategy 1", testCompare);
-            testClass.checkBoth(       0, 10000000,     4095, "Strategy 2", testCompare);
-            testClass.checkBoth(       0, 10000000,        3, "Strategy 3", testCompare);
-
-            testClass.checkBoth(  500000,   500000,   250000, "Strategy 1", testCompare);
-            testClass.checkBoth(  500000,   500000,      511, "Strategy 2", testCompare);
-            testClass.checkBoth(  500000,   500000,        3, "Strategy 3", testCompare);
-            testClass.checkBoth(       0,  1000000,   500000, "Strategy 1", testCompare);
-            testClass.checkBoth(       0,  1000000,     1023, "Strategy 2", testCompare);
-            testClass.checkBoth(       0,  1000000,        3, "Strategy 3", testCompare);
-
-            testClass.checkBoth(       7,        8,        4, "Opti.Gnome", testCompare);
-            testClass.checkBoth(       0,       15,        8, "Opti.Gnome", testCompare);
-            testClass.checkBoth(       0,       15,        4, "Opti.Gnome", testCompare);
-
-            System.out.println("\nAll tests passed successfully!!");
-        } catch (SortFailedException e) {
-            System.out.println("\nTesting failed!!\n");
-            System.exit(1);
         }
+
+        System.out.println("\n*** Testing Grailsort against Timsort ***");
+
+        testClass.checkBoth(       0,       15,        4, "Opti.Gnome", testCompare);
+        testClass.checkBoth(       0,       15,        8, "Opti.Gnome", testCompare);
+        testClass.checkBoth(       7,        8,        4, "Opti.Gnome", testCompare);
+
+        testClass.checkBoth(       0,  1000000,        3, "Strategy 3", testCompare);
+        testClass.checkBoth(       0,  1000000,     1023, "Strategy 2", testCompare);
+        testClass.checkBoth(       0,  1000000,   500000, "Strategy 1", testCompare);
+        testClass.checkBoth(  500000,   500000,        3, "Strategy 3", testCompare);
+        testClass.checkBoth(  500000,   500000,      511, "Strategy 2", testCompare);
+        testClass.checkBoth(  500000,   500000,   250000, "Strategy 1", testCompare);
+
+        testClass.checkBoth(       0, 10000000,        3, "Strategy 3", testCompare);
+        testClass.checkBoth(       0, 10000000,     4095, "Strategy 2", testCompare);
+        testClass.checkBoth(       0, 10000000,  5000000, "Strategy 1", testCompare);
+        testClass.checkBoth( 5000000,  5000000,        3, "Strategy 3", testCompare);
+        testClass.checkBoth( 5000000,  5000000,     2047, "Strategy 2", testCompare);
+        testClass.checkBoth( 5000000,  5000000,  2500000, "Strategy 1", testCompare);
+
+        testClass.checkBoth(       0, 50000000,        3, "Strategy 3", testCompare);
+        testClass.checkBoth(       0, 50000000,    16383, "Strategy 2", testCompare);
+        testClass.checkBoth(       0, 50000000, 25000000, "Strategy 1", testCompare);
+        testClass.checkBoth(25000000, 25000000,        3, "Strategy 3", testCompare);
+        testClass.checkBoth(25000000, 25000000,     8191, "Strategy 2", testCompare);
+        testClass.checkBoth(25000000, 25000000, 12500000, "Strategy 1", testCompare);
+
+
+        testClass.checkBoth(25000000, 25000000, 12500000, "Strategy 1", testCompare);
+        testClass.checkBoth(25000000, 25000000,     8191, "Strategy 2", testCompare);
+        testClass.checkBoth(25000000, 25000000,        3, "Strategy 3", testCompare);
+        testClass.checkBoth(       0, 50000000, 25000000, "Strategy 1", testCompare);
+        testClass.checkBoth(       0, 50000000,    16383, "Strategy 2", testCompare);
+        testClass.checkBoth(       0, 50000000,        3, "Strategy 3", testCompare);
+
+        testClass.checkBoth( 5000000,  5000000,  2500000, "Strategy 1", testCompare);
+        testClass.checkBoth( 5000000,  5000000,     2047, "Strategy 2", testCompare);
+        testClass.checkBoth( 5000000,  5000000,        3, "Strategy 3", testCompare);
+        testClass.checkBoth(       0, 10000000,  5000000, "Strategy 1", testCompare);
+        testClass.checkBoth(       0, 10000000,     4095, "Strategy 2", testCompare);
+        testClass.checkBoth(       0, 10000000,        3, "Strategy 3", testCompare);
+
+        testClass.checkBoth(  500000,   500000,   250000, "Strategy 1", testCompare);
+        testClass.checkBoth(  500000,   500000,      511, "Strategy 2", testCompare);
+        testClass.checkBoth(  500000,   500000,        3, "Strategy 3", testCompare);
+        testClass.checkBoth(       0,  1000000,   500000, "Strategy 1", testCompare);
+        testClass.checkBoth(       0,  1000000,     1023, "Strategy 2", testCompare);
+        testClass.checkBoth(       0,  1000000,        3, "Strategy 3", testCompare);
+
+        testClass.checkBoth(       7,        8,        4, "Opti.Gnome", testCompare);
+        testClass.checkBoth(       0,       15,        8, "Opti.Gnome", testCompare);
+        testClass.checkBoth(       0,       15,        4, "Opti.Gnome", testCompare);
+
+        System.out.println("Ran " + testClass.count + " tests with " + testClass.successes + " success(es) and " + testClass.failures + " failure(s).");
+        System.exit(testClass.failures);
     }
 }
