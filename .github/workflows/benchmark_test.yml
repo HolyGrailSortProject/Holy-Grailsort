@@ -1,0 +1,33 @@
+name: Test sorts w/ better benchmark
+on:
+  workflow_dispatch:
+    inputs:
+      averageCount:
+        description: The number of times to average a run
+        required: true
+        default: "3"
+
+jobs:
+  bench_java:
+    runs-on: macos-latest # Use macOS because it gives us more memory (14 GB instead of 7 GB)
+    defaults:
+      run:
+        working-directory: "Holy Grail Sort/Java/Summer Dragonfly et al.'s Rough Draft"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Java
+        uses: actions/setup-java@v2.1.0
+        with:
+          java-version: 8
+          distribution: zulu
+      - name: Build Tester
+        run: javac -d bin src/holygrail/*.java
+      - name: Checkout RGS
+        uses: actions/checkout@v2
+        with:
+          repository: HolyGrailSortProject/Rewritten-Grailsort
+          path: RGS
+      - name: Build RGS
+        run: javac -d bin "../../../RGS/Java/Summer Dragonfly et al.'s Rewritten Grailsort for Java/src/sort/GrailSort.java"
+      - name: Run Tester
+        run: java -Xmx12G -cp bin holygrail.Tester -average ${{ github.event.inputs.averageCount }}

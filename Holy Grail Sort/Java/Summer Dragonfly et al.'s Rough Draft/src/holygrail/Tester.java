@@ -106,6 +106,7 @@ public class Tester {
         }
     }
 
+    private int averages;
     private int seed;
     private int maxLength, maxKeyCount;
 
@@ -116,8 +117,9 @@ public class Tester {
     private String failReason;
     private int count, successes, failures;
 
-    public Tester(int maxLength, int maxKeyCount) {
+    public Tester(int maxLength, int maxKeyCount, int averages) {
         this.seed        = 100000001;
+        this.averages    = averages;
         this.maxLength   = maxLength;
         this.maxKeyCount = maxKeyCount;
         initArrays();
@@ -169,10 +171,40 @@ public class Tester {
         return true;
     }
 
-    private void checkAlgorithm(int start, int length, int keyCount, int algorithm, int grailBufferType, String grailStrategy, GrailComparator test) {
+    private long checkAlgorithmWithAverage(int start, int length, int keyCount, int algorithm, int grailBufferType, String grailStrategy, GrailComparator test) {
+        String grailType = "w/o External Buffer";
+        if(grailBufferType == 1) {
+            grailType = "w/ O(1) Buffer     ";
+        }
+        else if(grailBufferType == 2) {
+            grailType = "w/ O(sqrt n) Buffer";
+        }
+
+        if(algorithm == 0) {
+            System.out.println("\n* Holy Grail Sort " + grailType + ", " + grailStrategy + " \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
+        } else if(algorithm == 1) {
+            System.out.println("\n* Rewritten Grailsort " + grailType + ", " + grailStrategy + " \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
+        } else {
+            System.out.println("\n* Arrays.sort (Tim Sort)  \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
+        }
+
+        long sum = 0;
+        for (int n = 0; n < averages; n++) {
+            long oneTime = checkAlgorithm(start, length, keyCount, algorithm, grailBufferType, null, test);
+            if (oneTime != -1) sum += oneTime;
+        }
+        long time = sum / averages;
+        if (averages > 1) {
+            System.out.println("- Average sort time: " + time * 1e-6d + "ms");
+        }
+        return time;
+    }
+
+    private long checkAlgorithm(int start, int length, int keyCount, int algorithm, int grailBufferType, String grailStrategy, GrailComparator test) {
         int tempSeed = this.seed;
+        long time = -1;
         try {
-            checkAlgorithm0(start, length, keyCount, algorithm, grailBufferType, grailStrategy, test);
+            time = checkAlgorithm0(start, length, keyCount, algorithm, grailBufferType, grailStrategy, test);
         } catch (OutOfMemoryError e) {
             System.err.println("Warning: tester ran out of memory");
             e.printStackTrace();
@@ -184,7 +216,7 @@ public class Tester {
             initArrays();
             System.err.println("Re-running check...");
             try {
-                checkAlgorithm0(start, length, keyCount, algorithm, grailBufferType, grailStrategy, test);
+                time = checkAlgorithm0(start, length, keyCount, algorithm, grailBufferType, grailStrategy, test);
             } catch (Exception e1) {
                 System.out.println("Sort failed with exception:");
                 e.printStackTrace();
@@ -199,25 +231,28 @@ public class Tester {
             this.count++;
         }
         this.seed = tempSeed;
+        return time;
     }
 
-    private void checkAlgorithm0(int start, int length, int keyCount, int algorithm, int grailBufferType, String grailStrategy, GrailComparator test) throws Exception {
+    private long checkAlgorithm0(int start, int length, int keyCount, int algorithm, int grailBufferType, String grailStrategy, GrailComparator test) throws Exception {
         GrailPair[] array = algorithm == 2 ? this.referenceArray : this.keyArray;
         this.generateTestArray(array, start, length, keyCount);
 
-        String grailType = "w/o External Buffer";
-        if(grailBufferType == 1) {
-            grailType = "w/ O(1) Buffer     ";
-        }
-        else if(grailBufferType == 2) {
-            grailType = "w/ O(sqrt n) Buffer";
-        }
+        if (grailStrategy != null) {
+            String grailType = "w/o External Buffer";
+            if(grailBufferType == 1) {
+                grailType = "w/ O(1) Buffer     ";
+            }
+            else if(grailBufferType == 2) {
+                grailType = "w/ O(sqrt n) Buffer";
+            }
 
-        if(algorithm == 0) {
-            System.out.println("\n* Holy Grail Sort " + grailType + ", " + grailStrategy + " \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
-        } else if(algorithm == 1) {
-            System.out.println("\n* Rewritten Grailsort " + grailType + ", " + grailStrategy + " \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
-        } else {
+            if(algorithm == 0) {
+                System.out.println("\n* Holy Grail Sort " + grailType + ", " + grailStrategy + " \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
+            } else if(algorithm == 1) {
+                System.out.println("\n* Rewritten Grailsort " + grailType + ", " + grailStrategy + " \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
+            }
+        } else if (algorithm == 2) {
             System.out.println("\n* Arrays.sort (Tim Sort)  \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
         }
 
@@ -277,6 +312,8 @@ public class Tester {
 
         Arrays.fill(this.keyArray, null);
         System.gc();
+
+        return time;
     }
 
     private void checkBoth(int start, int length, int keyCount, String grailStrategy, GrailComparator test) {
@@ -284,16 +321,16 @@ public class Tester {
 
         if(!grailStrategy.equals("Opti.Gnome")) {
             for(int i = 0; i < 1; i++) {
-                this.checkAlgorithm(start, length, keyCount, 0, i, grailStrategy, test);
+                this.checkAlgorithmWithAverage(start, length, keyCount, 0, i, grailStrategy, test);
                 if (RewrittenGrailsort.RGS_CLASS != null) {
-                    this.checkAlgorithm(start, length, keyCount, 1, i, grailStrategy, test);
+                    this.checkAlgorithmWithAverage(start, length, keyCount, 1, i, grailStrategy, test);
                 }
             }
         }
         else {
-            this.checkAlgorithm(start, length, keyCount, 0, 0, grailStrategy, test);
+            this.checkAlgorithmWithAverage(start, length, keyCount, 0, 0, grailStrategy, test);
             if (RewrittenGrailsort.RGS_CLASS != null) {
-                this.checkAlgorithm(start, length, keyCount, 1, 0, grailStrategy, test);
+                this.checkAlgorithmWithAverage(start, length, keyCount, 1, 0, grailStrategy, test);
             }
         }
 
@@ -301,12 +338,30 @@ public class Tester {
         System.gc();
     }
 
+    private static String getJOpt(String[] args, String optName, String orDefault) {
+        optName = "-" + optName;
+        for (int i = 0; i < args.length - 1; i++) {
+            if (args[i].equals(optName)) {
+                return args[i + 1];
+            }
+        }
+        return orDefault;
+    }
+
+    private static String getJOpt(String[] args, String optName) {
+        return getJOpt(args, optName, null);
+    }
+
     public static void main(String[] args) {
         int maxLength   = 50000000;
         int maxKeyCount = 25000000;
 
-        Tester tester = new Tester(maxLength, maxKeyCount);
+        Tester tester = new Tester(maxLength, maxKeyCount, Integer.valueOf(getJOpt(args, "average", "1")));
         GrailComparator testCompare = new GrailComparator();
+
+        if (tester.averages > 1) {
+            System.out.println("Average timings based off of " + tester.averages + " averages.");
+        }
 
         System.out.println("Warming-up the JVM...");
 
@@ -317,7 +372,7 @@ public class Tester {
                 tester.seed = tempSeed;
                 Arrays.sort(tester.referenceArray, 0, u, testCompare);
                 for(int i = 0; i < 1; i++) {
-                    tester.checkAlgorithm(0, u, v - 1, 0, i, "All Strategies", testCompare);
+                    tester.checkAlgorithmWithAverage(0, u, v - 1, 0, i, "All Strategies", testCompare);
                 }
             }
         }

@@ -16,12 +16,5 @@ jobs:
           distribution: zulu
       - name: Build Tester
         run: javac -d bin src/holygrail/*.java
-      - name: Checkout RGS
-        uses: actions/checkout@v2
-        with:
-          repository: HolyGrailSortProject/Rewritten-Grailsort
-          path: RGS
-      - name: Build RGS
-        run: javac -d bin "../../../RGS/Java/Summer Dragonfly et al.'s Rewritten Grailsort for Java/src/sort/GrailSort.java"
       - name: Run Tester
         run: java -Xmx12G -cp bin holygrail.Tester
