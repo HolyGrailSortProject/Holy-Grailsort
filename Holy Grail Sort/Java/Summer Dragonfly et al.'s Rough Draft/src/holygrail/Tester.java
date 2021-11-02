@@ -66,25 +66,34 @@ public class Tester {
     }
 
     static interface IntegerPair {
-        public Integer getKey();
-        public Integer getValue();
+        public int getKey();
+        public int getValue();
     }
 
     static class GrailPair implements IntegerPair {
-        private Integer key;
-        private Integer value;
+        private int key, value;
 
-        public GrailPair(Integer key, Integer value) {
+        public GrailPair(int key, int value) {
             this.key = key;
             this.value = value;
         }
+
         @Override
-        public Integer getKey() {
+        public int getKey() {
             return this.key;
         }
+
         @Override
-        public Integer getValue() {
+        public int getValue() {
             return this.value;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null) return false;
+            if (!(o instanceof GrailPair)) return false;
+            GrailPair other = (GrailPair)o;
+            return this.key == other.key && this.value == other.value;
         }
     }
 
@@ -102,7 +111,7 @@ public class Tester {
 
     private GrailPair[] keyArray;
     private GrailPair[] referenceArray;
-    private Integer[]   valueArray;
+    private int[]       valueArray;
 
     private String failReason;
     private int count, successes, failures;
@@ -116,7 +125,8 @@ public class Tester {
 
     private void initArrays() {
         this.keyArray  = new GrailPair[this.maxLength];
-        this.valueArray = new Integer[this.maxKeyCount];
+        this.referenceArray = new GrailPair[this.maxKeyCount];
+        this.valueArray = new int[this.maxKeyCount];
     }
 
     private int getRandomNumber(int key) {
@@ -124,19 +134,17 @@ public class Tester {
         return (int) (((long) (this.seed & 0x7fffffff) * key) >> 31);
     }
 
-    private void generateTestArray(int start, int length, int keyCount) {
-        for(int i = 0; i < keyCount; i++) {
-            this.valueArray[i] = 0;
-        }
+    private void generateTestArray(GrailPair[] array, int start, int length, int keyCount) {
+        Arrays.fill(this.valueArray, 0, keyCount, 0);
 
         for(int i = start; i < start + length; i++) {
             if(keyCount != 0) {
                 int key = this.getRandomNumber(keyCount);
-                this.keyArray[i] = new GrailPair(key, this.valueArray[key]);
+                array[i] = new GrailPair(key, this.valueArray[key]);
                 this.valueArray[key]++;
             }
             else {
-                this.keyArray[i] = new GrailPair(this.getRandomNumber(1000000000), 0);
+                array[i] = new GrailPair(this.getRandomNumber(1000000000), 0);
             }
         }
     }
@@ -146,15 +154,15 @@ public class Tester {
             int compare = test.compare(this.keyArray[i - 1],
                                        this.keyArray[i    ]);
             if(compare > 0) {
-                this.failReason = "testArray[" + (i - 1) + "] and testArray[" + i + "] are out-of-order\n";
+                this.failReason = "testArray[" + (i - 1) + "] and testArray[" + i + "] are out-of-order";
                 return false;
             }
             else if(compare == 0 && this.keyArray[i - 1].getValue() > this.keyArray[i].getValue()) {
-                this.failReason = "testArray[" + (i - 1) + "] and testArray[" + i + "] are unstable\n";
+                this.failReason = "testArray[" + (i - 1) + "] and testArray[" + i + "] are unstable";
                 return false;
             }
             else if(!this.keyArray[i - 1].equals(this.referenceArray[i - 1])) {
-                this.failReason = "testArray[" + (i - 1) + "] does not match the reference array\n";
+                this.failReason = "testArray[" + (i - 1) + "] does not match the reference array";
                 return false;
             }
         }
@@ -162,6 +170,7 @@ public class Tester {
     }
 
     private void checkAlgorithm(int start, int length, int keyCount, int algorithm, int grailBufferType, String grailStrategy, GrailComparator test) {
+        int tempSeed = this.seed;
         try {
             checkAlgorithm0(start, length, keyCount, algorithm, grailBufferType, grailStrategy, test);
         } catch (OutOfMemoryError e) {
@@ -170,7 +179,6 @@ public class Tester {
             System.err.println("Purging data...");
             keyArray = null;
             referenceArray = null;
-            valueArray = null;
             System.gc();
             System.err.println("Re-initializing arrays...");
             initArrays();
@@ -190,11 +198,12 @@ public class Tester {
             this.failures++;
             this.count++;
         }
+        this.seed = tempSeed;
     }
 
     private void checkAlgorithm0(int start, int length, int keyCount, int algorithm, int grailBufferType, String grailStrategy, GrailComparator test) throws Exception {
-        this.generateTestArray(start, length, keyCount);
-        this.referenceArray = Arrays.copyOf(this.keyArray, start + length);
+        GrailPair[] array = algorithm == 2 ? this.referenceArray : this.keyArray;
+        this.generateTestArray(array, start, length, keyCount);
 
         String grailType = "w/o External Buffer";
         if(grailBufferType == 1) {
@@ -217,10 +226,10 @@ public class Tester {
 
         GrailPair[] buffer = null;
         int bufferLen = 0;
-        if(algorithm == 0 || algorithm == 1) {
+        if(algorithm != 2) {
             // Holy Grail Sort with static buffer
             if(grailBufferType == 1) {
-                buffer    = (GrailPair[]) Array.newInstance(this.keyArray.getClass().getComponentType(), HolyGrailSort.STATIC_EXT_BUFFER_LEN);
+                buffer    = (GrailPair[]) Array.newInstance(array.getClass().getComponentType(), HolyGrailSort.STATIC_EXT_BUFFER_LEN);
                 bufferLen = HolyGrailSort.STATIC_EXT_BUFFER_LEN;
             }
             // Holy Grail Sort with dynamic buffer
@@ -229,58 +238,56 @@ public class Tester {
                 while((bufferLen * bufferLen) < length) {
                     bufferLen *= 2;
                 }
-                buffer = (GrailPair[]) Array.newInstance(this.keyArray.getClass().getComponentType(), bufferLen);
+                buffer = (GrailPair[]) Array.newInstance(array.getClass().getComponentType(), bufferLen);
             }
         }
 
         if(algorithm == 0) {
             HolyGrailSort<GrailPair> grail = new HolyGrailSort<>(test);
-
             begin = System.nanoTime();
-            grail.commonSort(this.keyArray, start, length, buffer, bufferLen);
+            grail.commonSort(array, start, length, buffer, bufferLen);
             time = System.nanoTime() - begin;
         } else if (algorithm == 1) {
             RewrittenGrailsort<GrailPair> grail = new RewrittenGrailsort<>(test);
-
             begin = System.nanoTime();
-            grail.grailCommonSort(this.keyArray, start, length, buffer, bufferLen);
+            grail.grailCommonSort(array, start, length, buffer, bufferLen);
             time = System.nanoTime() - begin;
         } else {
             begin = System.nanoTime();
-            Arrays.sort(this.keyArray, start, start + length, test);
+            Arrays.sort(array, start, start + length, test);
             time = System.nanoTime() - begin;
         }
 
         System.out.print("- Sorted in " + time * 1e-6d + "ms...");
-        Arrays.sort(this.referenceArray, start, start + length, test);
 
-        boolean success = this.testArray(start, length, test);
-        if(success) {
-            System.out.print(" and the sort was successful!\n");
-            this.successes++;
+        if (algorithm == 2) {
+            System.out.println(" and the sort was successful!");
+        } else {
+            boolean success = this.testArray(start, length, test);
+            if(success) {
+                System.out.println(" and the sort was successful!");
+                this.successes++;
+            }
+            else {
+                System.out.println(" but the sort was NOT successful!!\nReason: " + this.failReason);
+                this.failures++;
+            }
+            this.count++;
         }
-        else {
-            System.out.print(" but the sort was NOT successful!!\nReason: " + this.failReason);
-            this.failures++;
-        }
-        this.count++;
 
-        // Sometimes the garbage collector wasn't cooperating.
-        Arrays.fill(this.keyArray,       null);
-        Arrays.fill(this.valueArray,     null);
-        Arrays.fill(this.referenceArray, null);
+        Arrays.fill(this.keyArray, null);
         System.gc();
     }
 
     private void checkBoth(int start, int length, int keyCount, String grailStrategy, GrailComparator test) {
-        int tempSeed = this.seed;
+        this.checkAlgorithm(start, length, keyCount, 2, 0, null, test);
+
         if(!grailStrategy.equals("Opti.Gnome")) {
             for(int i = 0; i < 1; i++) {
                 this.checkAlgorithm(start, length, keyCount, 0, i, grailStrategy, test);
                 if (RewrittenGrailsort.RGS_CLASS != null) {
                     this.checkAlgorithm(start, length, keyCount, 1, i, grailStrategy, test);
                 }
-                this.seed = tempSeed;
             }
         }
         else {
@@ -288,10 +295,10 @@ public class Tester {
             if (RewrittenGrailsort.RGS_CLASS != null) {
                 this.checkAlgorithm(start, length, keyCount, 1, 0, grailStrategy, test);
             }
-            this.seed = tempSeed;
         }
 
-        this.checkAlgorithm(start, length, keyCount, 2, 0, null, test);
+        Arrays.fill(this.referenceArray, null);
+        System.gc();
     }
 
     public static void main(String[] args) {
@@ -305,6 +312,10 @@ public class Tester {
 
         for(int u = 5; u <= (maxLength / 100); u *= 10) {
             for(int v = 2; v <= u && v <= (maxKeyCount / 100); v *= 2) {
+                int tempSeed = tester.seed;
+                tester.generateTestArray(tester.referenceArray, 0, u, v - 1);
+                tester.seed = tempSeed;
+                Arrays.sort(tester.referenceArray, 0, u, testCompare);
                 for(int i = 0; i < 1; i++) {
                     tester.checkAlgorithm(0, u, v - 1, 0, i, "All Strategies", testCompare);
                 }
