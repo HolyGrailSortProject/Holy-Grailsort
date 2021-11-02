@@ -215,12 +215,9 @@ public class Tester {
         long begin;
         long time;
 
-        if(algorithm == 0) {
-            HolyGrailSort<GrailPair> grail = new HolyGrailSort<>(test);
-
-            GrailPair[] buffer = null;
-            int bufferLen = 0;
-
+        GrailPair[] buffer = null;
+        int bufferLen = 0;
+        if(algorithm == 0 || algorithm == 1) {
             // Holy Grail Sort with static buffer
             if(grailBufferType == 1) {
                 buffer    = (GrailPair[]) Array.newInstance(this.keyArray.getClass().getComponentType(), HolyGrailSort.STATIC_EXT_BUFFER_LEN);
@@ -234,29 +231,16 @@ public class Tester {
                 }
                 buffer = (GrailPair[]) Array.newInstance(this.keyArray.getClass().getComponentType(), bufferLen);
             }
+        }
+
+        if(algorithm == 0) {
+            HolyGrailSort<GrailPair> grail = new HolyGrailSort<>(test);
 
             begin = System.nanoTime();
             grail.commonSort(this.keyArray, start, length, buffer, bufferLen);
             time = System.nanoTime() - begin;
         } else if (algorithm == 1) {
             RewrittenGrailsort<GrailPair> grail = new RewrittenGrailsort<>(test);
-
-            GrailPair[] buffer = null;
-            int bufferLen = 0;
-
-            // Holy Grail Sort with static buffer
-            if(grailBufferType == 1) {
-                buffer    = (GrailPair[]) Array.newInstance(this.keyArray.getClass().getComponentType(), HolyGrailSort.STATIC_EXT_BUFFER_LEN);
-                bufferLen = HolyGrailSort.STATIC_EXT_BUFFER_LEN;
-            }
-            // Holy Grail Sort with dynamic buffer
-            else if(grailBufferType == 2) {
-                bufferLen = 1;
-                while((bufferLen * bufferLen) < length) {
-                    bufferLen *= 2;
-                }
-                buffer = (GrailPair[]) Array.newInstance(this.keyArray.getClass().getComponentType(), bufferLen);
-            }
 
             begin = System.nanoTime();
             grail.grailCommonSort(this.keyArray, start, length, buffer, bufferLen);
