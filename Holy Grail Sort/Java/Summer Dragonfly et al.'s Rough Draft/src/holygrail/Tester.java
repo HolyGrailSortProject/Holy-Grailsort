@@ -24,10 +24,11 @@ public class Tester {
             try {
                 rgsClass = Class.forName("sort.GrailSort");
                 rgsConstructor = rgsClass.getDeclaredConstructor(Comparator.class);
-                rgsCommonSort = rgsClass.getDeclaredMethod("grailCommonSort", Array.class, int.class, int.class, Array.class, int.class);
-                rgsSortInPlace = rgsClass.getDeclaredMethod("grailSortInPlace", Array.class, int.class, int.class);
-                rgsSortStaticOOP = rgsClass.getDeclaredMethod("grailSortStaticOOP", Array.class, int.class, int.class);
-                rgsSortDynamicOOP = rgsClass.getDeclaredMethod("grailSortDynamicOOP", Array.class, int.class, int.class);
+                rgsCommonSort = rgsClass.getDeclaredMethod("grailCommonSort", Object[].class, int.class, int.class, Object[].class, int.class);
+                rgsCommonSort.setAccessible(true);
+                rgsSortInPlace = rgsClass.getDeclaredMethod("grailSortInPlace", Object[].class, int.class, int.class);
+                rgsSortStaticOOP = rgsClass.getDeclaredMethod("grailSortStaticOOP", Object[].class, int.class, int.class);
+                rgsSortDynamicOOP = rgsClass.getDeclaredMethod("grailSortDynamicOOP", Object[].class, int.class, int.class);
                 System.out.println("found " + rgsClass);
             } catch (ReflectiveOperationException e) {
                 System.out.println("not found");
@@ -160,9 +161,9 @@ public class Tester {
         return true;
     }
 
-    private void checkAlgorithm(int start, int length, int keyCount, boolean grailSort, int grailBufferType, String grailStrategy, GrailComparator test) {
+    private void checkAlgorithm(int start, int length, int keyCount, int algorithm, int grailBufferType, String grailStrategy, GrailComparator test) {
         try {
-            checkAlgorithm0(start, length, keyCount, grailSort, grailBufferType, grailStrategy, test);
+            checkAlgorithm0(start, length, keyCount, algorithm, grailBufferType, grailStrategy, test);
         } catch (OutOfMemoryError e) {
             System.err.println("Warning: tester ran out of memory");
             e.printStackTrace();
@@ -174,7 +175,14 @@ public class Tester {
             System.err.println("Re-initializing arrays...");
             initArrays();
             System.err.println("Re-running check...");
-            checkAlgorithm(start, length, keyCount, grailSort, grailBufferType, grailStrategy, test);
+            try {
+                checkAlgorithm0(start, length, keyCount, algorithm, grailBufferType, grailStrategy, test);
+            } catch (Exception e1) {
+                System.out.println("Sort failed with exception:");
+                e.printStackTrace();
+                this.failures++;
+                this.count++;
+            }
         }
         catch (Exception e) {
             System.out.println("Sort failed with exception:");
@@ -184,7 +192,7 @@ public class Tester {
         }
     }
 
-    private void checkAlgorithm0(int start, int length, int keyCount, boolean grailSort, int grailBufferType, String grailStrategy, GrailComparator test) {
+    private void checkAlgorithm0(int start, int length, int keyCount, int algorithm, int grailBufferType, String grailStrategy, GrailComparator test) throws Exception {
         this.generateTestArray(start, length, keyCount);
         this.referenceArray = Arrays.copyOf(this.keyArray, start + length);
 
@@ -196,17 +204,18 @@ public class Tester {
             grailType = "w/ O(sqrt n) Buffer";
         }
 
-        if(grailSort) {
+        if(algorithm == 0) {
             System.out.println("\n* Holy Grail Sort " + grailType + ", " + grailStrategy + " \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
-        }
-        else {
+        } else if(algorithm == 1) {
+            System.out.println("\n* Rewritten Grailsort " + grailType + ", " + grailStrategy + " \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
+        } else {
             System.out.println("\n* Arrays.sort (Tim Sort)  \n* start = " + start + ", length = " + length + ", unique items = " + keyCount);
         }
 
         long begin;
         long time;
 
-        if(grailSort) {
+        if(algorithm == 0) {
             HolyGrailSort<GrailPair> grail = new HolyGrailSort<>(test);
 
             GrailPair[] buffer = null;
@@ -229,8 +238,30 @@ public class Tester {
             begin = System.nanoTime();
             grail.commonSort(this.keyArray, start, length, buffer, bufferLen);
             time = System.nanoTime() - begin;
-        }
-        else {
+        } else if (algorithm == 1) {
+            RewrittenGrailsort<GrailPair> grail = new RewrittenGrailsort<>(test);
+
+            GrailPair[] buffer = null;
+            int bufferLen = 0;
+
+            // Holy Grail Sort with static buffer
+            if(grailBufferType == 1) {
+                buffer    = (GrailPair[]) Array.newInstance(this.keyArray.getClass().getComponentType(), HolyGrailSort.STATIC_EXT_BUFFER_LEN);
+                bufferLen = HolyGrailSort.STATIC_EXT_BUFFER_LEN;
+            }
+            // Holy Grail Sort with dynamic buffer
+            else if(grailBufferType == 2) {
+                bufferLen = 1;
+                while((bufferLen * bufferLen) < length) {
+                    bufferLen *= 2;
+                }
+                buffer = (GrailPair[]) Array.newInstance(this.keyArray.getClass().getComponentType(), bufferLen);
+            }
+
+            begin = System.nanoTime();
+            grail.grailCommonSort(this.keyArray, start, length, buffer, bufferLen);
+            time = System.nanoTime() - begin;
+        } else {
             begin = System.nanoTime();
             Arrays.sort(this.keyArray, start, start + length, test);
             time = System.nanoTime() - begin;
@@ -261,16 +292,22 @@ public class Tester {
         int tempSeed = this.seed;
         if(!grailStrategy.equals("Opti.Gnome")) {
             for(int i = 0; i < 1; i++) {
-                this.checkAlgorithm(start, length, keyCount, true, i, grailStrategy, test);
+                this.checkAlgorithm(start, length, keyCount, 0, i, grailStrategy, test);
+                if (RewrittenGrailsort.RGS_CLASS != null) {
+                    this.checkAlgorithm(start, length, keyCount, 1, i, grailStrategy, test);
+                }
                 this.seed = tempSeed;
             }
         }
         else {
-            this.checkAlgorithm(start, length, keyCount, true, 0, grailStrategy, test);
+            this.checkAlgorithm(start, length, keyCount, 0, 0, grailStrategy, test);
+            if (RewrittenGrailsort.RGS_CLASS != null) {
+                this.checkAlgorithm(start, length, keyCount, 1, 0, grailStrategy, test);
+            }
             this.seed = tempSeed;
         }
 
-        this.checkAlgorithm(start, length, keyCount, false, 0, null, test);
+        this.checkAlgorithm(start, length, keyCount, 2, 0, null, test);
     }
 
     public static void main(String[] args) {
@@ -285,12 +322,12 @@ public class Tester {
         for(int u = 5; u <= (maxLength / 100); u *= 10) {
             for(int v = 2; v <= u && v <= (maxKeyCount / 100); v *= 2) {
                 for(int i = 0; i < 1; i++) {
-                    tester.checkAlgorithm(0, u, v - 1, true, i, "All Strategies", testCompare);
+                    tester.checkAlgorithm(0, u, v - 1, 0, i, "All Strategies", testCompare);
                 }
             }
         }
 
-        System.out.println("\n*** Testing Holy Grail Sort against Tim Sort ***");
+        System.out.println("\n*** Testing Holy Grail Sort against Tim Sort and Rewritten Grail Sort ***");
 
         tester.checkBoth(       0,       15,        4, "Opti.Gnome", testCompare);
         tester.checkBoth(       0,       15,        8, "Opti.Gnome", testCompare);
