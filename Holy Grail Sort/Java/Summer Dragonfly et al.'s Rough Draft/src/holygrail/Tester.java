@@ -266,13 +266,13 @@ public class Tester {
             boolean success = this.testArray(start, length, test);
             if(success) {
                 System.out.println(" and the sort was successful!");
-                this.successes++;
+                if (algorithm == 0) this.successes++;
             }
             else {
                 System.out.println(" but the sort was NOT successful!!\nReason: " + this.failReason);
-                this.failures++;
+                if (algorithm == 0) this.failures++;
             }
-            this.count++;
+            if (algorithm == 0) this.count++;
         }
 
         Arrays.fill(this.keyArray, null);
