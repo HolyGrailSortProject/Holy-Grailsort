@@ -225,7 +225,7 @@ public class Tester {
 
         for(int u = 5; u <= (maxLength / 100); u *= 10) {
             for(int v = 2; v <= u && v <= (maxKeyCount / 100); v *= 2) {
-                for(int i = 0; i < 3; i++) {
+                for(int i = 0; i < 1; i++) {
                     tester.checkAlgorithm(0, u, v - 1, true, i, "All Strategies", testCompare);
                 }
             }
