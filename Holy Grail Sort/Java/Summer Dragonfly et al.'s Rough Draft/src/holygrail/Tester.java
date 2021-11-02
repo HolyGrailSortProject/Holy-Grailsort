@@ -1,10 +1,69 @@
 package holygrail;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Comparator;
 
 public class Tester {
+    final static class RewrittenGrailsort<K> {
+        public static final Class<?> RGS_CLASS;
+        private static final Constructor<?> RGS_CONSTRUCTOR;
+        private static final Method RGS_COMMON_SORT, RGS_SORT_IN_PLACE, RGS_SORT_STATIC_OOP, RGS_SORT_DYNAMIC_OOP;
+        private final Object instance;
+
+        static {
+            System.out.print("Checking for Rewritten Grail Sort class... ");
+            Class<?> rgsClass = null;
+            Constructor<?> rgsConstructor = null;
+            Method rgsCommonSort = null,
+                   rgsSortInPlace = null,
+                   rgsSortStaticOOP = null,
+                   rgsSortDynamicOOP = null;
+            try {
+                rgsClass = Class.forName("sort.GrailSort");
+                rgsConstructor = rgsClass.getDeclaredConstructor(Comparator.class);
+                rgsCommonSort = rgsClass.getDeclaredMethod("grailCommonSort", Array.class, int.class, int.class, Array.class, int.class);
+                rgsSortInPlace = rgsClass.getDeclaredMethod("grailSortInPlace", Array.class, int.class, int.class);
+                rgsSortStaticOOP = rgsClass.getDeclaredMethod("grailSortStaticOOP", Array.class, int.class, int.class);
+                rgsSortDynamicOOP = rgsClass.getDeclaredMethod("grailSortDynamicOOP", Array.class, int.class, int.class);
+                System.out.println("found " + rgsClass);
+            } catch (ReflectiveOperationException e) {
+                System.out.println("not found");
+            }
+            RGS_CLASS = rgsClass;
+            RGS_CONSTRUCTOR = rgsConstructor;
+            RGS_COMMON_SORT = rgsCommonSort;
+            RGS_SORT_IN_PLACE = rgsSortInPlace;
+            RGS_SORT_STATIC_OOP = rgsSortStaticOOP;
+            RGS_SORT_DYNAMIC_OOP = rgsSortDynamicOOP;
+        }
+
+        public RewrittenGrailsort(Comparator<K> cmp) throws ReflectiveOperationException {
+            if (RGS_CLASS == null) {
+                throw new ClassNotFoundException("sort.GrailSort");
+            }
+            this.instance = RGS_CONSTRUCTOR.newInstance(cmp);
+        }
+
+        public void grailCommonSort(K[] array, int start, int length, K[] extBuffer, int extBufferLen) throws ReflectiveOperationException {
+            RGS_COMMON_SORT.invoke(this.instance, array, start, length, extBuffer, extBufferLen);
+        }
+
+        public void grailSortInPlace(K[] array, int start, int length) throws ReflectiveOperationException {
+            RGS_SORT_IN_PLACE.invoke(this.instance, array, start, length);
+        }
+
+        public void grailSortStaticOOP(K[] array, int start, int length) throws ReflectiveOperationException {
+            RGS_SORT_STATIC_OOP.invoke(this.instance, array, start, length);
+        }
+
+        public void grailSortDynamicOOP(K[] array, int start, int length) throws ReflectiveOperationException {
+            RGS_SORT_DYNAMIC_OOP.invoke(this.instance, array, start, length);
+        }
+    }
+
     static interface IntegerPair {
         public Integer getKey();
         public Integer getValue();
