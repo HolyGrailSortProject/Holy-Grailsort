@@ -125,7 +125,7 @@ public class Tester {
 
     private void initArrays() {
         this.keyArray  = new GrailPair[this.maxLength];
-        this.referenceArray = new GrailPair[this.maxKeyCount];
+        this.referenceArray = new GrailPair[this.maxLength];
         this.valueArray = new int[this.maxKeyCount];
     }
 
