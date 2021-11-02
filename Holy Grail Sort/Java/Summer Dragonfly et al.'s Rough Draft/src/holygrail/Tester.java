@@ -201,7 +201,7 @@ public class Tester {
     private void checkBoth(int start, int length, int keyCount, String grailStrategy, GrailComparator test) {
         int tempSeed = this.seed;
         if(!grailStrategy.equals("Opti.Gnome")) {
-            for(int i = 0; i < 3; i++) {
+            for(int i = 0; i < 1; i++) {
                 this.checkAlgorithm(start, length, keyCount, true, i, grailStrategy, test);
                 this.seed = tempSeed;
             }
